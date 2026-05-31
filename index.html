@@ -1079,6 +1079,15 @@ function save(){
   localStorage.setItem('cab2_folders',JSON.stringify(FOLDERS));
   localStorage.setItem('cab2_pins',JSON.stringify(PINS));
   localStorage.setItem('cab2_settings',JSON.stringify(SETTINGS));
+  // Auto-push to Firestore with 2s debounce (avoid flooding on rapid changes)
+  schedulePush();
+}
+
+let pushTimer = null;
+function schedulePush(){
+  if(!currentUser) return;
+  clearTimeout(pushTimer);
+  pushTimer = setTimeout(()=>{ pushToCloud(); }, 2000);
 }
 
 // ===== TOAST =====
@@ -2637,16 +2646,58 @@ let conflictCloudData = null;
 let authMode = 'login';
 
 // ===== AUTH STATE LISTENER =====
+let firestoreUnsubscribe = null;
+
 auth.onAuthStateChanged(user => {
   currentUser = user;
   if(user) {
     updateUserUI(user);
-    // Auto-load cloud data on login
+    // Load cloud data immediately
     autoLoadOnLogin();
+    // Subscribe to real-time updates from Firestore
+    subscribeToCloud();
   } else {
     updateUserUI(null);
+    // Unsubscribe from real-time updates
+    if(firestoreUnsubscribe) { firestoreUnsubscribe(); firestoreUnsubscribe = null; }
   }
 });
+
+function subscribeToCloud(){
+  if(!currentUser) return;
+  if(firestoreUnsubscribe) firestoreUnsubscribe(); // unsubscribe previous
+  firestoreUnsubscribe = db.collection('users').doc(currentUser.uid)
+    .onSnapshot(doc => {
+      if(!doc.exists) return;
+      const cloudData = doc.data();
+      if(!cloudData) return;
+      const cloudDate = cloudData.settings?.lastSync || 0;
+      const localDate = SETTINGS.lastSync || 0;
+      // Only apply if cloud is newer (another device pushed)
+      // Ignore if it's our own push (same timestamp)
+      if(cloudDate > localDate + 1000) {
+        // Another device saved — apply silently
+        applyCloudData(cloudData);
+        showSyncBadge('Mis à jour depuis un autre appareil');
+      }
+    }, err => {
+      console.warn('Firestore listener error:', err);
+    });
+}
+
+function showSyncBadge(msg){
+  const badge = document.getElementById('sync-badge') || createSyncBadge();
+  badge.textContent = '☁️ ' + msg;
+  badge.style.opacity = '1';
+  setTimeout(()=>badge.style.opacity='0', 4000);
+}
+function createSyncBadge(){
+  const b = document.createElement('div');
+  b.id = 'sync-badge';
+  b.style.cssText = 'position:fixed;top:60px;right:16px;background:var(--accent);color:var(--bg);padding:8px 14px;border-radius:8px;font-size:12px;z-index:999;transition:opacity .5s;opacity:0;font-family:Jost,sans-serif;box-shadow:0 4px 16px rgba(0,0,0,.3);';
+  document.body.appendChild(b);
+  return b;
+}
 
 function updateUserUI(user) {
   const avatar = document.getElementById('sb-avatar');
@@ -2806,37 +2857,51 @@ function getCloudPath() {
 
 async function autoLoadOnLogin() {
   if(!currentUser) return;
+  updateSyncStatus('syncing');
   try {
     const doc = await getCloudPath().get();
     if(!doc.exists) {
-      // No cloud data yet — first time, push local
+      // First connection — push local data to cloud
       await pushToCloud();
+      toast('Bibliothèque sauvegardée dans le cloud ✓', 'ti-cloud-upload');
       return;
     }
     const cloudData = doc.data();
-    const localCount = DB.length;
-    const cloudCount = (cloudData.db||[]).length;
     const localDate = SETTINGS.lastSync || 0;
     const cloudDate = cloudData.settings?.lastSync || 0;
+    const localCount = DB.length;
+    const cloudCount = (cloudData.db||[]).length;
+    const isSameDevice = localDate > 0 && localDate === cloudDate;
 
+    if(isSameDevice || cloudCount === 0) {
+      // Same device or cloud is empty — no conflict
+      if(cloudCount > 0) {
+        updateSyncStatus('ok', 'Déjà synchronisé');
+      } else {
+        await pushToCloud();
+      }
+      return;
+    }
     if(localCount === 0 && cloudCount > 0) {
-      // Pull cloud silently
+      // New/fresh device — pull cloud silently, no conflict
       applyCloudData(cloudData);
-      toast('Données cloud chargées ✓', 'ti-cloud-download');
+      toast('Données chargées depuis le cloud ✓', 'ti-cloud-download');
       return;
     }
-    if(cloudCount === 0 && localCount > 0) {
+    // Both have data and dates differ — show conflict
+    if(cloudDate > localDate) {
+      // Cloud is newer — apply automatically (most common case: another device saved)
+      applyCloudData(cloudData);
+      toast('Données mises à jour depuis le cloud ✓', 'ti-cloud-download');
+    } else if(localDate > cloudDate) {
+      // Local is newer — push automatically
       await pushToCloud();
-      return;
-    }
-    if(localCount > 0 && cloudCount > 0 && localDate !== cloudDate) {
-      // Show conflict
-      showConflict(cloudData);
     } else {
-      updateSyncStatus('ok', 'Cloud à jour');
+      showConflict(cloudData);
     }
   } catch(e) {
-    updateSyncStatus('error', 'Erreur chargement');
+    console.error('autoLoadOnLogin error:', e);
+    updateSyncStatus('error', 'Erreur réseau');
   }
 }
 
@@ -2964,12 +3029,13 @@ async function resolveConflict(choice) {
   conflictCloudData = null;
 }
 
-// Auto-sync every 5 minutes if logged in
-setInterval(() => {
-  if(currentUser && document.getElementById('s-app') && !document.getElementById('s-app').classList.contains('off')) {
-    pushToCloud();
+// Sync on page visibility change (user switches back to tab)
+document.addEventListener('visibilitychange', () => {
+  if(!document.hidden && currentUser) {
+    // Re-check cloud when user comes back to the tab
+    autoLoadOnLogin();
   }
-}, 5 * 60 * 1000);
+});
 
 // ===== INIT — Show auth screen first =====
 // Override the normal init to show auth first
