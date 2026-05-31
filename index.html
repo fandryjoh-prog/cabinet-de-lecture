@@ -484,8 +484,60 @@ select option{background:var(--bg);color:var(--text);}
 #fs-btn.active{color:var(--accent);border-color:var(--accent);background:var(--accent3);}
 
 </style>
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 </head>
 <body class="t-perso">
+
+<!-- ===== AUTH SCREEN ===== -->
+<div class="screen off" id="s-auth" style="background:#0a0c10;flex-direction:column;gap:0;">
+  <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 30% 40%,rgba(201,168,76,.06),transparent 60%),radial-gradient(ellipse at 70% 70%,rgba(201,168,76,.04),transparent 60%);pointer-events:none;"></div>
+  <div style="position:relative;z-index:2;width:100%;max-width:420px;padding:20px;">
+    <!-- Logo -->
+    <div style="text-align:center;margin-bottom:32px;">
+      <div style="font-family:'Dancing Script',cursive;font-size:42px;color:#f5e4a8;margin-bottom:4px;">Art'fan</div>
+      <div style="font-family:'Cinzel',serif;font-size:10px;color:rgba(201,168,76,.5);letter-spacing:3px;">CABINET DE LECTURE</div>
+    </div>
+    <!-- Auth box -->
+    <div style="background:rgba(20,22,30,.9);border:1px solid rgba(201,168,76,.2);border-radius:14px;padding:28px;box-shadow:0 20px 60px rgba(0,0,0,.4);">
+      <div style="position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(201,168,76,.4),transparent);border-radius:14px 14px 0 0;"></div>
+      <!-- Tabs -->
+      <div style="display:flex;gap:0;margin-bottom:24px;background:rgba(255,255,255,.04);border-radius:8px;padding:3px;">
+        <button id="tab-login" onclick="switchAuthTab('login')" style="flex:1;background:rgba(201,168,76,.15);border:1px solid rgba(201,168,76,.3);border-radius:6px;padding:8px;font-family:'Cinzel',serif;font-size:11px;color:#c9a84c;cursor:pointer;letter-spacing:1px;transition:.2s;">CONNEXION</button>
+        <button id="tab-signup" onclick="switchAuthTab('signup')" style="flex:1;background:transparent;border:1px solid transparent;border-radius:6px;padding:8px;font-family:'Cinzel',serif;font-size:11px;color:rgba(201,168,76,.4);cursor:pointer;letter-spacing:1px;transition:.2s;">INSCRIPTION</button>
+      </div>
+      <!-- Form -->
+      <div id="auth-form" style="display:flex;flex-direction:column;gap:12px;">
+        <div id="auth-name-row" style="display:none;">
+          <div style="font-size:10px;color:rgba(201,168,76,.5);letter-spacing:1px;margin-bottom:5px;font-family:'Cinzel',serif;">PRÉNOM</div>
+          <input id="auth-name" type="text" placeholder="Votre prénom…" style="width:100%;background:rgba(201,168,76,.05);border:1px solid rgba(201,168,76,.2);border-radius:7px;padding:10px 14px;font-size:13px;color:#e8dfc0;outline:none;font-family:'Jost',sans-serif;" onfocus="this.style.borderColor='rgba(201,168,76,.6)'" onblur="this.style.borderColor='rgba(201,168,76,.2)'"/>
+        </div>
+        <div>
+          <div style="font-size:10px;color:rgba(201,168,76,.5);letter-spacing:1px;margin-bottom:5px;font-family:'Cinzel',serif;">EMAIL</div>
+          <input id="auth-email" type="email" placeholder="vous@email.com" style="width:100%;background:rgba(201,168,76,.05);border:1px solid rgba(201,168,76,.2);border-radius:7px;padding:10px 14px;font-size:13px;color:#e8dfc0;outline:none;font-family:'Jost',sans-serif;" onfocus="this.style.borderColor='rgba(201,168,76,.6)'" onblur="this.style.borderColor='rgba(201,168,76,.2)'" onkeydown="if(event.key==='Enter')authSubmit()"/>
+        </div>
+        <div>
+          <div style="font-size:10px;color:rgba(201,168,76,.5);letter-spacing:1px;margin-bottom:5px;font-family:'Cinzel',serif;">MOT DE PASSE</div>
+          <div style="position:relative;">
+            <input id="auth-pass" type="password" placeholder="••••••••" style="width:100%;background:rgba(201,168,76,.05);border:1px solid rgba(201,168,76,.2);border-radius:7px;padding:10px 40px 10px 14px;font-size:13px;color:#e8dfc0;outline:none;font-family:'Jost',sans-serif;" onfocus="this.style.borderColor='rgba(201,168,76,.6)'" onblur="this.style.borderColor='rgba(201,168,76,.2)'" onkeydown="if(event.key==='Enter')authSubmit()"/>
+            <button onclick="togglePassVis()" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:rgba(201,168,76,.4);font-size:15px;"><i class="ti ti-eye" id="pass-eye"></i></button>
+          </div>
+        </div>
+        <div id="auth-err" style="font-size:12px;color:#e05555;min-height:18px;text-align:center;"></div>
+        <button onclick="authSubmit()" id="auth-submit-btn" style="background:linear-gradient(135deg,#c9a84c,#e8c97a);border:none;border-radius:8px;padding:12px;font-family:'Cinzel',serif;font-size:12px;color:#1a1200;cursor:pointer;letter-spacing:1.5px;font-weight:600;transition:.2s;margin-top:4px;">CONNEXION</button>
+        <div style="text-align:center;">
+          <button onclick="authContinueOffline()" style="background:transparent;border:none;color:rgba(201,168,76,.35);font-size:11px;cursor:pointer;font-family:'Jost',sans-serif;letter-spacing:.5px;text-decoration:underline;padding:4px;">Continuer sans compte</button>
+        </div>
+        <div id="auth-reset-row" style="text-align:center;">
+          <button onclick="resetPassword()" style="background:transparent;border:none;color:rgba(201,168,76,.35);font-size:11px;cursor:pointer;font-family:'Jost',sans-serif;letter-spacing:.5px;">Mot de passe oublié ?</button>
+        </div>
+      </div>
+    </div>
+    <div style="text-align:center;margin-top:16px;font-size:10px;color:rgba(201,168,76,.2);letter-spacing:1px;font-family:'Cinzel',serif;">ART'FAN © 2025</div>
+  </div>
+</div>
 
 <!-- ===== PAGE DE GARDE ===== -->
 <div class="screen" id="s-garde">
@@ -644,6 +696,21 @@ select option{background:var(--bg);color:var(--text);}
       <div id="tag-cloud"></div>
     </div>
     <div class="sb-bottom">
+      <!-- USER INFO -->
+      <div id="sb-user-row" style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;margin-bottom:4px;">
+        <div id="sb-avatar" style="width:28px;height:28px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--bg);font-family:'Cinzel',serif;flex-shrink:0;">?</div>
+        <div style="flex:1;min-width:0;">
+          <div id="sb-user-name" style="font-size:12px;color:var(--text);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Hors ligne</div>
+          <div id="sb-user-email" style="font-size:10px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></div>
+        </div>
+        <button onclick="signOut()" title="Se déconnecter" style="background:transparent;border:none;cursor:pointer;color:var(--text3);font-size:15px;padding:3px;border-radius:5px;"><i class="ti ti-logout"></i></button>
+      </div>
+      <!-- SYNC BUTTON -->
+      <div id="sb-sync-row" style="display:flex;align-items:center;gap:6px;padding:6px 10px;border-radius:8px;cursor:pointer;transition:.12s;border:1px solid var(--border);margin-bottom:4px;" onclick="syncData()" onmouseover="this.style.background='var(--bg2)'" onmouseout="this.style.background=''">
+        <i class="ti ti-cloud-upload" id="sync-icon" style="font-size:15px;color:var(--accent)"></i>
+        <span id="sync-label" style="font-size:12px;color:var(--text2);flex:1;">Synchroniser</span>
+        <span id="sync-status" style="font-size:10px;color:var(--text3);"></span>
+      </div>
       <div class="sb-bot-row" onclick="showPanel('stats')"><i class="ti ti-chart-bar"></i>Statistiques</div>
       <div class="sb-bot-row" onclick="showPanel('settings')"><i class="ti ti-settings"></i>Paramètres</div>
       <div class="theme-mini" id="theme-dots"></div>
@@ -925,6 +992,34 @@ select option{background:var(--bg);color:var(--text);}
     <div id="pm-body"></div>
   </div>
 </div></div>
+
+
+<!-- CONFLICT MODAL -->
+<div class="overlay" id="ov-conflict">
+<div class="modal" style="width:500px;background:#0e1018;border-color:rgba(201,168,76,.3);">
+  <div class="mhead" style="background:#0e1018;border-color:rgba(201,168,76,.2);">
+    <h3 style="color:#c9a84c;font-family:'Cinzel',serif;font-size:14px;letter-spacing:1px;">⚡ CONFLIT DE DONNÉES</h3>
+    <button class="icon-btn" onclick="closeOverlay('ov-conflict')" style="color:rgba(201,168,76,.5)"><i class="ti ti-x"></i></button>
+  </div>
+  <div style="padding:20px;display:flex;flex-direction:column;gap:16px;">
+    <p style="font-size:13px;color:rgba(200,190,160,.7);line-height:1.6;">Des données existent à la fois en local et dans le cloud. Laquelle voulez-vous garder ?</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div id="conflict-local" style="background:rgba(201,168,76,.05);border:1px solid rgba(201,168,76,.2);border-radius:10px;padding:14px;">
+        <div style="font-family:'Cinzel',serif;font-size:10px;color:rgba(201,168,76,.6);letter-spacing:1px;margin-bottom:8px;">📱 LOCAL</div>
+        <div id="conflict-local-info" style="font-size:12px;color:rgba(200,190,160,.7);line-height:1.6;"></div>
+      </div>
+      <div id="conflict-cloud" style="background:rgba(74,111,165,.05);border:1px solid rgba(74,111,165,.2);border-radius:10px;padding:14px;">
+        <div style="font-family:'Cinzel',serif;font-size:10px;color:rgba(74,111,165,.7);letter-spacing:1px;margin-bottom:8px;">☁️ CLOUD</div>
+        <div id="conflict-cloud-info" style="font-size:12px;color:rgba(200,190,160,.7);line-height:1.6;"></div>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;">
+      <button onclick="resolveConflict('local')" style="flex:1;background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.3);border-radius:8px;padding:10px;font-family:'Cinzel',serif;font-size:11px;color:#c9a84c;cursor:pointer;letter-spacing:1px;">GARDER LOCAL</button>
+      <button onclick="resolveConflict('cloud')" style="flex:1;background:rgba(74,111,165,.1);border:1px solid rgba(74,111,165,.3);border-radius:8px;padding:10px;font-family:'Cinzel',serif;font-size:11px;color:rgba(140,170,220,.8);cursor:pointer;letter-spacing:1px;">GARDER CLOUD</button>
+    </div>
+  </div>
+</div>
+</div>
 
 <div id="toast"><i class="ti ti-check"></i><span id="toast-msg">OK</span></div>
 
@@ -2520,6 +2615,370 @@ document.addEventListener('keydown',e2=>{
   else if(e2.key==='Backspace')gpinKey('del');
   else if(e2.key==='Enter')gpinKey('ok');
 });
+
+
+// ===== FIREBASE CONFIG =====
+const firebaseConfig = {
+  apiKey: "AIzaSyC0lvYYE6VV9w1u9wiqphM-WygvWeMq068",
+  authDomain: "cabinet-de-lecture.firebaseapp.com",
+  projectId: "cabinet-de-lecture",
+  storageBucket: "cabinet-de-lecture.firebasestorage.app",
+  messagingSenderId: "1077357399412",
+  appId: "1:1077357399412:web:a8b4a2ffe7d70666fd3021",
+  measurementId: "G-GRDR36QXQ9"
+};
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+let currentUser = null;
+let conflictCloudData = null;
+let authMode = 'login';
+
+// ===== AUTH STATE LISTENER =====
+auth.onAuthStateChanged(user => {
+  currentUser = user;
+  if(user) {
+    updateUserUI(user);
+    // Auto-load cloud data on login
+    autoLoadOnLogin();
+  } else {
+    updateUserUI(null);
+  }
+});
+
+function updateUserUI(user) {
+  const avatar = document.getElementById('sb-avatar');
+  const nameEl = document.getElementById('sb-user-name');
+  const emailEl = document.getElementById('sb-user-email');
+  if(user) {
+    const initials = (user.displayName||user.email||'?').substring(0,2).toUpperCase();
+    if(avatar) { avatar.textContent = initials; avatar.style.background = 'var(--accent)'; }
+    if(nameEl) nameEl.textContent = user.displayName || user.email.split('@')[0];
+    if(emailEl) emailEl.textContent = user.email;
+  } else {
+    if(avatar) { avatar.textContent = '?'; avatar.style.background = 'var(--text3)'; }
+    if(nameEl) nameEl.textContent = 'Hors ligne';
+    if(emailEl) emailEl.textContent = '';
+  }
+  updateSyncStatus('idle');
+}
+
+// ===== AUTH SCREEN =====
+function switchAuthTab(mode) {
+  authMode = mode;
+  const nameRow = document.getElementById('auth-name-row');
+  const resetRow = document.getElementById('auth-reset-row');
+  const submitBtn = document.getElementById('auth-submit-btn');
+  const tabLogin = document.getElementById('tab-login');
+  const tabSignup = document.getElementById('tab-signup');
+  document.getElementById('auth-err').textContent = '';
+  if(mode === 'login') {
+    if(nameRow) nameRow.style.display = 'none';
+    if(submitBtn) submitBtn.textContent = 'CONNEXION';
+    if(resetRow) resetRow.style.display = 'block';
+    tabLogin.style.background = 'rgba(201,168,76,.15)';
+    tabLogin.style.borderColor = 'rgba(201,168,76,.3)';
+    tabLogin.style.color = '#c9a84c';
+    tabSignup.style.background = 'transparent';
+    tabSignup.style.borderColor = 'transparent';
+    tabSignup.style.color = 'rgba(201,168,76,.4)';
+  } else {
+    if(nameRow) nameRow.style.display = 'block';
+    if(submitBtn) submitBtn.textContent = 'CRÉER MON COMPTE';
+    if(resetRow) resetRow.style.display = 'none';
+    tabSignup.style.background = 'rgba(201,168,76,.15)';
+    tabSignup.style.borderColor = 'rgba(201,168,76,.3)';
+    tabSignup.style.color = '#c9a84c';
+    tabLogin.style.background = 'transparent';
+    tabLogin.style.borderColor = 'transparent';
+    tabLogin.style.color = 'rgba(201,168,76,.4)';
+  }
+}
+
+function togglePassVis() {
+  const input = document.getElementById('auth-pass');
+  const eye = document.getElementById('pass-eye');
+  if(input.type === 'password') {
+    input.type = 'text';
+    eye.className = 'ti ti-eye-off';
+  } else {
+    input.type = 'password';
+    eye.className = 'ti ti-eye';
+  }
+}
+
+async function authSubmit() {
+  const email = document.getElementById('auth-email').value.trim();
+  const pass = document.getElementById('auth-pass').value;
+  const errEl = document.getElementById('auth-err');
+  const btn = document.getElementById('auth-submit-btn');
+  if(!email || !pass) { errEl.textContent = 'Remplissez tous les champs.'; return; }
+  btn.textContent = '...';
+  btn.disabled = true;
+  errEl.textContent = '';
+  try {
+    if(authMode === 'login') {
+      await auth.signInWithEmailAndPassword(email, pass);
+      goToGarde();
+    } else {
+      const name = document.getElementById('auth-name').value.trim();
+      const cred = await auth.createUserWithEmailAndPassword(email, pass);
+      if(name) await cred.user.updateProfile({ displayName: name });
+      SETTINGS.name = name;
+      save();
+      goToGarde();
+    }
+  } catch(e) {
+    const msgs = {
+      'auth/user-not-found': 'Aucun compte avec cet email.',
+      'auth/wrong-password': 'Mot de passe incorrect.',
+      'auth/email-already-in-use': 'Email déjà utilisé.',
+      'auth/weak-password': 'Mot de passe trop court (min. 6 caractères).',
+      'auth/invalid-email': 'Email invalide.',
+      'auth/too-many-requests': 'Trop de tentatives. Réessayez plus tard.',
+      'auth/invalid-credential': 'Email ou mot de passe incorrect.',
+    };
+    errEl.textContent = msgs[e.code] || e.message;
+  }
+  btn.disabled = false;
+  btn.textContent = authMode === 'login' ? 'CONNEXION' : 'CRÉER MON COMPTE';
+}
+
+async function resetPassword() {
+  const email = document.getElementById('auth-email').value.trim();
+  const errEl = document.getElementById('auth-err');
+  if(!email) { errEl.textContent = "Entrez votre email d'abord."; return; }
+  try {
+    await auth.sendPasswordResetEmail(email);
+    errEl.style.color = '#2ecc71';
+    errEl.textContent = 'Email de réinitialisation envoyé !';
+    setTimeout(() => { errEl.style.color = '#e05555'; errEl.textContent = ''; }, 4000);
+  } catch(e) {
+    errEl.textContent = 'Email introuvable.';
+  }
+}
+
+function authContinueOffline() {
+  goToGarde();
+}
+
+async function signOut() {
+  if(!confirm('Se déconnecter ?')) return;
+  await auth.signOut();
+  toast('Déconnecté', 'ti-logout');
+}
+
+// ===== SYNC STATUS UI =====
+function updateSyncStatus(state, msg) {
+  const icon = document.getElementById('sync-icon');
+  const label = document.getElementById('sync-label');
+  const status = document.getElementById('sync-status');
+  const states = {
+    idle:    { ic:'ti-cloud-upload', col:'var(--accent)',   lbl:'Synchroniser',  st:'' },
+    syncing: { ic:'ti-loader-2',     col:'#f0c040',         lbl:'Sync en cours…', st:'' },
+    ok:      { ic:'ti-cloud-check',  col:'#2ecc71',         lbl:'Synchronisé',   st: msg||'' },
+    error:   { ic:'ti-cloud-x',      col:'#e05555',         lbl:'Erreur sync',   st: msg||'' },
+    offline: { ic:'ti-cloud-off',    col:'var(--text3)',    lbl:'Hors ligne',    st:'' },
+  };
+  const s = states[state] || states.idle;
+  if(icon) { icon.className = 'ti ' + s.ic; icon.style.color = s.col; }
+  if(label) label.textContent = s.lbl;
+  if(status) status.textContent = s.st;
+  // Spin animation for syncing
+  if(icon) icon.style.animation = state==='syncing' ? 'spin 1s linear infinite' : '';
+}
+
+// Add spin keyframe if not present
+if(!document.getElementById('spin-style')) {
+  const st = document.createElement('style');
+  st.id = 'spin-style';
+  st.textContent = '@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}';
+  document.head.appendChild(st);
+}
+
+// ===== FIRESTORE SYNC =====
+function getCloudPath() {
+  if(!currentUser) return null;
+  return db.collection('users').doc(currentUser.uid);
+}
+
+async function autoLoadOnLogin() {
+  if(!currentUser) return;
+  try {
+    const doc = await getCloudPath().get();
+    if(!doc.exists) {
+      // No cloud data yet — first time, push local
+      await pushToCloud();
+      return;
+    }
+    const cloudData = doc.data();
+    const localCount = DB.length;
+    const cloudCount = (cloudData.db||[]).length;
+    const localDate = SETTINGS.lastSync || 0;
+    const cloudDate = cloudData.settings?.lastSync || 0;
+
+    if(localCount === 0 && cloudCount > 0) {
+      // Pull cloud silently
+      applyCloudData(cloudData);
+      toast('Données cloud chargées ✓', 'ti-cloud-download');
+      return;
+    }
+    if(cloudCount === 0 && localCount > 0) {
+      await pushToCloud();
+      return;
+    }
+    if(localCount > 0 && cloudCount > 0 && localDate !== cloudDate) {
+      // Show conflict
+      showConflict(cloudData);
+    } else {
+      updateSyncStatus('ok', 'Cloud à jour');
+    }
+  } catch(e) {
+    updateSyncStatus('error', 'Erreur chargement');
+  }
+}
+
+async function syncData() {
+  if(!currentUser) {
+    toast('Connectez-vous pour synchroniser', 'ti-user');
+    showScreen('s-auth');
+    return;
+  }
+  updateSyncStatus('syncing');
+  try {
+    const doc = await getCloudPath().get();
+    if(doc.exists) {
+      const cloudData = doc.data();
+      const localDate = SETTINGS.lastSync || 0;
+      const cloudDate = cloudData.settings?.lastSync || 0;
+      const localCount = DB.length;
+      const cloudCount = (cloudData.db||[]).length;
+      if(localCount > 0 && cloudCount > 0 && localDate !== cloudDate) {
+        showConflict(cloudData);
+        updateSyncStatus('idle');
+        return;
+      }
+    }
+    await pushToCloud();
+  } catch(e) {
+    updateSyncStatus('error', e.message);
+    toast('Erreur de synchronisation', 'ti-alert-circle');
+  }
+}
+
+async function pushToCloud() {
+  if(!currentUser) return;
+  updateSyncStatus('syncing');
+  try {
+    SETTINGS.lastSync = Date.now();
+    // Strip large base64 file data before sync (too large for Firestore 1MB doc limit)
+    const dbToSync = DB.map(item => {
+      const copy = {...item};
+      if(copy.fileData && copy.fileData.length > 50000) {
+        copy.fileData = '__LOCAL_ONLY__';
+        copy.fileDataLocal = true;
+      }
+      if(copy.mediaData && copy.mediaData.length > 50000) {
+        copy.mediaData = '__LOCAL_ONLY__';
+        copy.mediaDataLocal = true;
+      }
+      return copy;
+    });
+    await getCloudPath().set({
+      db: dbToSync,
+      folders: FOLDERS,
+      settings: SETTINGS,
+      pins: PINS,
+      syncedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      version: 3
+    });
+    save();
+    const now = new Date();
+    const timeStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+    updateSyncStatus('ok', timeStr);
+    toast('Synchronisation réussie ✓', 'ti-cloud-check');
+  } catch(e) {
+    updateSyncStatus('error', 'Erreur');
+    toast('Erreur : ' + e.message, 'ti-alert-circle');
+  }
+}
+
+function applyCloudData(cloudData) {
+  // Merge: keep local fileData for items marked LOCAL_ONLY
+  const cloudDB = cloudData.db || [];
+  const mergedDB = cloudDB.map(cloudItem => {
+    const localItem = DB.find(li => li.id === cloudItem.id);
+    if(cloudItem.fileData === '__LOCAL_ONLY__' && localItem) {
+      cloudItem.fileData = localItem.fileData || '';
+      cloudItem.fileDataLocal = false;
+    }
+    if(cloudItem.mediaData === '__LOCAL_ONLY__' && localItem) {
+      cloudItem.mediaData = localItem.mediaData || '';
+      cloudItem.mediaDataLocal = false;
+    }
+    return cloudItem;
+  });
+  DB = mergedDB;
+  FOLDERS = cloudData.folders || FOLDERS;
+  SETTINGS = {...SETTINGS, ...(cloudData.settings||{})};
+  PINS = cloudData.pins || PINS;
+  save();
+  render();
+  buildFolderTree();
+  updateSidebar();
+  const now = new Date();
+  updateSyncStatus('ok', `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`);
+}
+
+// ===== CONFLICT RESOLUTION =====
+function showConflict(cloudData) {
+  conflictCloudData = cloudData;
+  const localCount = DB.length;
+  const cloudCount = (cloudData.db||[]).length;
+  const localDate = SETTINGS.lastSync ? new Date(SETTINGS.lastSync).toLocaleString('fr-FR') : 'Inconnue';
+  const cloudDate = cloudData.settings?.lastSync ? new Date(cloudData.settings.lastSync).toLocaleString('fr-FR') : 'Inconnue';
+  const localFolders = FOLDERS.length;
+  const cloudFolders = (cloudData.folders||[]).length;
+  document.getElementById('conflict-local-info').innerHTML =
+    `<b style="color:#e8dfc0">${localCount}</b> éléments<br>
+     <b style="color:#e8dfc0">${localFolders}</b> dossiers<br>
+     <span style="font-size:11px;color:rgba(201,168,76,.4)">Modifié le :<br>${localDate}</span>`;
+  document.getElementById('conflict-cloud-info').innerHTML =
+    `<b style="color:#e8dfc0">${cloudCount}</b> éléments<br>
+     <b style="color:#e8dfc0">${cloudFolders}</b> dossiers<br>
+     <span style="font-size:11px;color:rgba(100,140,200,.5)">Modifié le :<br>${cloudDate}</span>`;
+  openOverlay('ov-conflict');
+}
+
+async function resolveConflict(choice) {
+  closeOverlay('ov-conflict');
+  if(choice === 'cloud' && conflictCloudData) {
+    applyCloudData(conflictCloudData);
+    toast('Données cloud appliquées ✓', 'ti-cloud-check');
+  } else {
+    await pushToCloud();
+    toast('Données locales sauvegardées ✓', 'ti-device-floppy');
+  }
+  conflictCloudData = null;
+}
+
+// Auto-sync every 5 minutes if logged in
+setInterval(() => {
+  if(currentUser && document.getElementById('s-app') && !document.getElementById('s-app').classList.contains('off')) {
+    pushToCloud();
+  }
+}, 5 * 60 * 1000);
+
+// ===== INIT — Show auth screen first =====
+// Override the normal init to show auth first
+window.addEventListener('load', () => {
+  // Show auth screen on top of garde
+  showScreen('s-auth');
+  switchAuthTab('login');
+});
+
 
 typeChange();
 </script>
