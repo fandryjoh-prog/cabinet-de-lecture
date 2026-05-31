@@ -378,7 +378,7 @@ select option{background:var(--bg);color:var(--text);}
 
 
 /* ===== LECTEUR INTERNE ===== */
-#panel-viewer{padding:0;display:flex;flex-direction:column;background:var(--bg3);}
+/* viewer is now #viewer-overlay — see inline styles */
 .viewer-topbar{height:48px;background:var(--bg);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;padding:0 14px;flex-shrink:0;box-shadow:var(--shadow);}
 .viewer-back{display:flex;align-items:center;gap:6px;background:transparent;border:none;cursor:pointer;color:var(--text2);font-size:13px;font-family:'Jost',sans-serif;padding:6px 10px;border-radius:7px;transition:.12s;}
 .viewer-back:hover{background:var(--bg2);color:var(--text);}
@@ -647,6 +647,18 @@ select option{background:var(--bg);color:var(--text);}
     <i class="ti ti-chevron-left" id="sb-toggle-icon"></i>
   </button>
 </div>
+
+  <!-- VIEWER — overlay complet dans s-app -->
+  <div id="viewer-overlay" style="display:none;position:absolute;inset:0;z-index:30;display:none;flex-direction:column;background:var(--bg3);">
+    <div class="viewer-topbar" id="viewer-topbar">
+      <button class="viewer-back" onclick="closeViewer()"><i class="ti ti-arrow-left"></i>Retour</button>
+      <div class="viewer-title" id="viewer-title">Fichier</div>
+      <div class="viewer-type" id="viewer-type">—</div>
+      <div class="viewer-actions" id="viewer-actions"></div>
+      <button onclick="toggleFullscreen()" title="Plein écran (F)" style="background:transparent;border:1px solid var(--border);border-radius:7px;padding:5px 8px;cursor:pointer;color:var(--text3);font-size:15px;display:flex;align-items:center;transition:.12s;flex-shrink:0;"><i class="ti ti-maximize"></i></button>
+    </div>
+    <div class="viewer-body" id="viewer-body" style="flex:1;overflow:hidden;position:relative;"></div>
+  </div>
 
   <div id="main-area">
     <div id="topbar">
@@ -1112,13 +1124,17 @@ function openViewer(itemOrId){
     </div>`;
   }
 
-  showPanel('viewer');
+  // Show overlay — covers full app area
+  const ov = document.getElementById('viewer-overlay');
+  if(ov){ ov.style.display='flex'; }
 }
 
 function closeViewer(){
   // Save text if dirty before leaving
   if(textEditorDirty) saveTextEditor();
-  showPanel(viewerPrevPanel);
+  // Hide overlay
+  const ov = document.getElementById('viewer-overlay');
+  if(ov){ ov.style.display='none'; }
   // Rerender bib in case notes changed
   if(viewerPrevPanel==='bib') renderBib();
 }
@@ -1795,9 +1811,11 @@ function clearFolder(){fFolder=null;buildFolderTree();renderBib();}
 
 // ===== PANELS =====
 function showPanel(name){
+  if(name==='viewer') return; // handled by openViewer
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   document.getElementById('topbar').style.display=name==='bib'?'flex':'none';
-  document.getElementById('panel-'+name).classList.add('active');
+  const panel = document.getElementById('panel-'+name);
+  if(panel) panel.classList.add('active');
   if(name==='stats')renderStats();
   if(name==='settings'){refreshDashboard();}
 }
