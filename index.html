@@ -65,6 +65,10 @@ body{background:var(--bg,#fdf8ee);color:var(--text,#2c1f0e);}
 /* ===== PAGES SYSTÈME ===== */
 .screen{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;transition:opacity .6s,transform .6s;z-index:50;}
 .screen.off{opacity:0;pointer-events:none;transform:scale(.97);}
+#s-app{z-index:10;}
+#s-garde{z-index:60;}
+#s-espaces{z-index:55;}
+#s-pin,#s-gpin{z-index:58;}
 
 /* PAGE DE GARDE */
 #s-garde{background:#1a120a;flex-direction:column;}
@@ -378,7 +382,9 @@ select option{background:var(--bg);color:var(--text);}
 
 
 /* ===== LECTEUR INTERNE ===== */
-/* viewer is now #viewer-overlay — see inline styles */
+/* viewer is now #viewer-overlay */
+#viewer-overlay{display:none;}
+#viewer-overlay.open{display:flex !important;}
 .viewer-topbar{height:48px;background:var(--bg);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;padding:0 14px;flex-shrink:0;box-shadow:var(--shadow);}
 .viewer-back{display:flex;align-items:center;gap:6px;background:transparent;border:none;cursor:pointer;color:var(--text2);font-size:13px;font-family:'Jost',sans-serif;padding:6px 10px;border-radius:7px;transition:.12s;}
 .viewer-back:hover{background:var(--bg2);color:var(--text);}
@@ -649,7 +655,7 @@ select option{background:var(--bg);color:var(--text);}
 </div>
 
   <!-- VIEWER — overlay complet dans s-app -->
-  <div id="viewer-overlay" style="display:none;position:absolute;inset:0;z-index:30;display:none;flex-direction:column;background:var(--bg3);">
+  <div id="viewer-overlay" style="position:absolute;inset:0;z-index:30;flex-direction:column;background:var(--bg3);display:none;">
     <div class="viewer-topbar" id="viewer-topbar">
       <button class="viewer-back" onclick="closeViewer()"><i class="ti ti-arrow-left"></i>Retour</button>
       <div class="viewer-title" id="viewer-title">Fichier</div>
@@ -1126,7 +1132,7 @@ function openViewer(itemOrId){
 
   // Show overlay — covers full app area
   const ov = document.getElementById('viewer-overlay');
-  if(ov){ ov.style.display='flex'; }
+  if(ov){ ov.style.display=''; ov.classList.add('open'); }
 }
 
 function closeViewer(){
@@ -1134,7 +1140,7 @@ function closeViewer(){
   if(textEditorDirty) saveTextEditor();
   // Hide overlay
   const ov = document.getElementById('viewer-overlay');
-  if(ov){ ov.style.display='none'; }
+  if(ov){ ov.classList.remove('open'); ov.style.display=''; }
   // Rerender bib in case notes changed
   if(viewerPrevPanel==='bib') renderBib();
 }
