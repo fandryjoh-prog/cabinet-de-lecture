@@ -532,6 +532,19 @@ mark{background:var(--accent3);color:var(--accent);border-radius:2px;padding:0 1
 .up-bar{height:100%;background:var(--accent);border-radius:3px;transition:width .2s;}
 .up-label{font-size:11px;color:var(--text3);min-width:40px;text-align:right;}
 
+
+/* ===== SÉLECTION MULTIPLE ===== */
+.doc-card{position:relative;}
+.doc-card.selected{border-color:var(--accent);background:var(--accent3);}
+.doc-select-cb{position:absolute;top:10px;left:10px;width:18px;height:18px;border-radius:4px;border:2px solid var(--border);background:var(--bg);cursor:pointer;display:none;align-items:center;justify-content:center;z-index:2;transition:.1s;}
+.doc-card:hover .doc-select-cb,.doc-card.selected .doc-select-cb,.selection-mode .doc-select-cb{display:flex;}
+.doc-select-cb.checked{background:var(--accent);border-color:var(--accent);color:var(--bg);}
+.selection-toolbar{position:sticky;top:0;z-index:10;background:var(--accent);color:var(--bg);padding:10px 16px;display:flex;align-items:center;gap:10px;border-radius:10px;margin-bottom:12px;box-shadow:var(--shadow2);}
+.selection-toolbar span{font-size:13px;font-weight:500;flex:1;}
+.sel-btn{background:rgba(0,0,0,.15);border:none;border-radius:6px;padding:6px 12px;font-size:12px;color:var(--bg);cursor:pointer;font-family:'Jost',sans-serif;transition:.1s;display:flex;align-items:center;gap:5px;}
+.sel-btn:hover{background:rgba(0,0,0,.25);}
+.sel-btn.danger{background:rgba(180,0,0,.3);}
+
 </style>
   <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
@@ -2385,10 +2398,15 @@ function getDocIcon(docType, fileName){
   return '📎';
 }
 
+let selectedDocs = new Set();
+let selectionMode = false;
+
 function renderFolderView(folderId){
   const folder = FOLDERS.find(f=>f.id===folderId);
-  if(!folder) return;
-  const items = getCurDB().filter(i=>i.folder===folderId);
+  if(!folder){renderBib();return;}
+  // BUG FIX: search ALL items in DB for this folder, not just curEspace
+  // (files uploaded in global view get espace='perso' but folder matches)
+  const items = DB.filter(i=>i.folder===folderId);
   const docs = items.filter(i=>i.type==='doc');
   const others = items.filter(i=>i.type!=='doc');
   const subFolders = FOLDERS.filter(f=>f.parent===folderId);
@@ -2402,58 +2420,197 @@ function renderFolderView(folderId){
     ${ancestors.map(a=>`<i class="ti ti-chevron-right"></i><span onclick="filterFolder('${a.id}')">${a.icon} ${a.name}</span>`).join('')}
   </div>`;
 
+  // Selection toolbar (shown when items selected)
+  const selToolbar = selectedDocs.size > 0 ? `
+    <div class="selection-toolbar">
+      <span>${selectedDocs.size} sélectionné${selectedDocs.size>1?'s':''}</span>
+      <button class="sel-btn" onclick="selectAllDocs(${folderId})"><i class="ti ti-checks"></i>Tout</button>
+      <button class="sel-btn" onclick="moveSelectedDocs()"><i class="ti ti-folder-symlink"></i>Déplacer</button>
+      <button class="sel-btn danger" onclick="deleteSelectedDocs()"><i class="ti ti-trash"></i>Supprimer</button>
+      <button class="sel-btn" onclick="clearSelection('${folderId}')"><i class="ti ti-x"></i>Annuler</button>
+    </div>` : '';
+
   // Upload bar
   const upBar = `<div class="folder-upload-bar">
-    <label class="fub-btn" style="cursor:pointer">
-      <i class="ti ti-upload"></i>Uploader un fichier
-      <input type="file" style="display:none" accept="*/*" onchange="uploadDocToFolder('${folderId}',this)"/>
+    <label class="fub-btn" style="cursor:pointer;background:var(--accent);color:var(--bg);border-color:var(--accent)">
+      <i class="ti ti-upload"></i>Uploader
+      <input type="file" style="display:none" accept="*/*" multiple onchange="handleFolderUpload('${folderId}',this)"/>
     </label>
-    <button class="fub-btn" onclick="addLinkToFolder('${folderId}')"><i class="ti ti-link"></i>Ajouter un lien URL</button>
-    <button class="fub-btn" onclick="addHtmlToFolder('${folderId}')"><i class="ti ti-code"></i>Ajouter HTML</button>
+    <button class="fub-btn" onclick="addLinkToFolder('${folderId}')"><i class="ti ti-link"></i>Lien URL</button>
+    <button class="fub-btn" onclick="addHtmlToFolder('${folderId}')"><i class="ti ti-code"></i>HTML</button>
+    <button class="fub-btn" onclick="openAddInFolder('${folderId}')"><i class="ti ti-notes"></i>Fiche</button>
     <button class="fub-btn" onclick="openNewFolder('${folderId}')"><i class="ti ti-folder-plus"></i>Sous-dossier</button>
     <button class="fub-btn" onclick="editFolder('${folderId}')"><i class="ti ti-edit"></i>Renommer</button>
-    <button class="fub-btn" onclick="deleteFolder('${folderId}')" style="color:#c0392b"><i class="ti ti-trash"></i>Supprimer</button>
+    <button class="fub-btn" onclick="deleteFolder('${folderId}')" style="color:#c0392b"><i class="ti ti-trash"></i></button>
   </div>`;
 
   // Sub-folders
-  const subHTML = subFolders.length ? `<div class="sec-head"><h2>Sous-dossiers</h2><span class="cnt-pill">${subFolders.length}</span></div>
-    <div class="grid" style="margin-bottom:18px">${subFolders.map(sf=>`
+  const subHTML = subFolders.length ? `<div class="sec-head" style="margin-top:4px"><h2>Sous-dossiers</h2><span class="cnt-pill">${subFolders.length}</span></div>
+    <div class="grid" style="margin-bottom:16px">${subFolders.map(sf=>`
       <div class="card" onclick="filterFolder('${sf.id}')" style="display:flex;align-items:center;gap:12px;padding:14px">
         <span style="font-size:26px">${sf.icon||'📁'}</span>
         <div><div class="card-title" style="margin-bottom:2px">${sf.name}</div>
-        <div style="font-size:11px;color:var(--text3)">${getCurDB().filter(i=>i.folder===sf.id).length} éléments</div></div>
+        <div style="font-size:11px;color:var(--text3)">${DB.filter(i=>i.folder===sf.id).length} éléments</div></div>
       </div>`).join('')}</div>` : '';
 
-  // Docs
-  const docsHTML = docs.length ? `<div class="sec-head"><h2>Documents</h2><span class="cnt-pill">${docs.length}</span></div>
-    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:18px">
-      ${docs.map(d=>`<div class="doc-card" onclick="openViewer(${d.id})">
-        <div class="doc-icon">${getDocIcon(d.docType,d.fileName)}</div>
-        <div class="doc-info">
-          <div class="doc-name">${d.title}</div>
-          <div class="doc-meta">${d.docType==='url'?d.url:d.docType==='html'?'Document HTML':d.fileName||'Fichier'} ${d.fileSize?'· '+formatSize(d.fileSize):''}</div>
-        </div>
-        <div class="doc-actions">
-          ${d.docType==='url'?`<a href="${d.url}" target="_blank" class="icon-btn" onclick="event.stopPropagation()"><i class="ti ti-external-link"></i></a>`:''}
-          ${d.fileData&&d.docType!=='url'&&d.docType!=='html'?`<a href="${d.fileData}" download="${d.fileName}" class="icon-btn" onclick="event.stopPropagation()"><i class="ti ti-download"></i></a>`:''}
-          <button class="icon-btn danger" onclick="event.stopPropagation();deleteDoc(${d.id})"><i class="ti ti-trash"></i></button>
-        </div>
-      </div>`).join('')}
+  // Docs with selection checkboxes
+  const docsHTML = docs.length ? `
+    <div class="sec-head" style="margin-top:4px">
+      <h2>Fichiers</h2><span class="cnt-pill">${docs.length}</span>
+      <button class="fub-btn" style="margin-left:auto" onclick="toggleSelectionMode('${folderId}')">
+        <i class="ti ti-checkbox"></i>${selectionMode?'Annuler sélection':'Sélectionner'}
+      </button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:7px;margin-bottom:16px" id="docs-list-${folderId}" class="${selectionMode?'selection-mode':''}">
+      ${docs.map(d=>{
+        const isSel = selectedDocs.has(d.id);
+        const dlLink = d.storageUrl ? `<a href="${d.storageUrl}" target="_blank" class="icon-btn" onclick="event.stopPropagation()" title="Ouvrir"><i class="ti ti-external-link"></i></a>` :
+          (d.fileData ? `<a href="${d.fileData}" download="${d.fileName||d.title}" class="icon-btn" onclick="event.stopPropagation()" title="Télécharger"><i class="ti ti-download"></i></a>` : '');
+        return `<div class="doc-card${isSel?' selected':''}" id="dc-${d.id}" onclick="docCardClick(${d.id},'${folderId}',event)">
+          <div class="doc-select-cb${isSel?' checked':''}" onclick="event.stopPropagation();toggleDocSelect(${d.id},'${folderId}')">
+            ${isSel?'<i class="ti ti-check" style="font-size:11px"></i>':''}
+          </div>
+          <div class="doc-icon">${getDocIcon(d.docType||'file',d.fileName||d.title)}</div>
+          <div class="doc-info">
+            <div class="doc-name">${d.title||d.fileName}</div>
+            <div class="doc-meta">
+              ${d.docType==='url'?d.url : d.storageUrl?'☁️ Cloud Storage' : d.docType==='html'?'Document HTML' : d.fileName||'Fichier'}
+              ${d.fileSize?'· '+formatSize(d.fileSize):''}
+            </div>
+          </div>
+          <div class="doc-actions">
+            ${dlLink}
+            <button class="icon-btn danger" onclick="event.stopPropagation();deleteDoc(${d.id})" title="Supprimer"><i class="ti ti-trash"></i></button>
+          </div>
+        </div>`;
+      }).join('')}
     </div>` : '';
 
-  // Regular items
-  const othersHTML = others.length ? `<div class="sec-head"><h2>Contenus</h2><span class="cnt-pill">${others.length}</span></div>
+  // Regular items (notes, books etc)
+  const othersHTML = others.length ? `
+    <div class="sec-head" style="margin-top:4px"><h2>Contenus</h2><span class="cnt-pill">${others.length}</span></div>
     <div class="${vmode==='grid'?'grid':'list-v'}">${others.map(cardH).join('')}</div>` : '';
 
-  bib.innerHTML = bc + `<div class="folder-header">
-    <div class="folder-header-icon">${folder.icon||'📁'}</div>
-    <div><div class="folder-header-name">${folder.name}</div>
-    <div class="folder-header-cnt">${items.length} élément${items.length!==1?'s':''}</div></div>
-  </div>` + upBar + subHTML + docsHTML + othersHTML +
-  (subFolders.length===0&&docs.length===0&&others.length===0?`<div class="empty"><i class="ti ti-folder-open"></i><p>Dossier vide<br><small style="font-size:12px;color:var(--text3)">Utilisez les boutons ci-dessus pour ajouter du contenu</small></p></div>`:'');
+  const isEmpty = subFolders.length===0&&docs.length===0&&others.length===0;
+
+  bib.innerHTML = bc + `
+    <div class="folder-header">
+      <div class="folder-header-icon">${folder.icon||'📁'}</div>
+      <div>
+        <div class="folder-header-name">${folder.name}</div>
+        <div class="folder-header-cnt">${items.length} élément${items.length!==1?'s':''}</div>
+      </div>
+    </div>` +
+    upBar + selToolbar + subHTML + docsHTML + othersHTML +
+    (isEmpty?`<div class="empty"><i class="ti ti-folder-open"></i><p>Dossier vide</p><p style="font-size:12px;color:var(--text3);margin-top:6px">Cliquez sur <b>Uploader</b> pour ajouter des fichiers</p></div>`:'');
 
   bib.querySelectorAll('.card').forEach(c=>c.onclick=()=>openDetail(+c.dataset.id));
 }
+
+// ===== SELECTION FUNCTIONS =====
+function docCardClick(id, folderId, e){
+  if(selectionMode){ toggleDocSelect(id, folderId); return; }
+  openViewer(id);
+}
+
+function toggleDocSelect(id, folderId){
+  if(selectedDocs.has(id)) selectedDocs.delete(id);
+  else selectedDocs.add(id);
+  renderFolderView(folderId);
+}
+
+function toggleSelectionMode(folderId){
+  selectionMode = !selectionMode;
+  if(!selectionMode) selectedDocs.clear();
+  renderFolderView(folderId);
+}
+
+function selectAllDocs(folderId){
+  const docs = DB.filter(i=>i.folder===folderId&&i.type==='doc');
+  docs.forEach(d=>selectedDocs.add(d.id));
+  renderFolderView(folderId);
+}
+
+function clearSelection(folderId){
+  selectedDocs.clear();
+  selectionMode = false;
+  renderFolderView(folderId);
+}
+
+async function deleteSelectedDocs(){
+  const ids = [...selectedDocs];
+  if(!ids.length) return;
+  if(!confirm(`Supprimer ${ids.length} fichier${ids.length>1?'s':''} ?`)) return;
+  // Delete from Storage if cloud files
+  for(const id of ids){
+    const item = DB.find(i=>i.id===id);
+    if(item && item.storagePath && currentUser){
+      try{ await storage.ref(item.storagePath).delete(); }catch(e){ console.warn('Storage delete failed:', e); }
+    }
+  }
+  DB = DB.filter(i=>!ids.includes(i.id));
+  selectedDocs.clear();
+  selectionMode = false;
+  save(); updateSidebar(); buildFolderTree();
+  if(fFolder) renderFolderView(fFolder);
+  toast(`${ids.length} fichier${ids.length>1?'s':''} supprimé${ids.length>1?'s':''}`, 'ti-trash');
+}
+
+function moveSelectedDocs(){
+  const ids = [...selectedDocs];
+  if(!ids.length) return;
+  // Build folder list for selection
+  const folderOptions = FOLDERS.map(f=>`${f.icon} ${f.name} (${f.id})`).join('\n');
+  const choice = prompt(`Déplacer vers quel dossier ?\nEntrez l'ID du dossier :\n\n${FOLDERS.map(f=>`${f.icon} ${f.name} → ID: ${f.id}`).join('\n')}`);
+  if(!choice) return;
+  const targetFolder = FOLDERS.find(f=>f.id===choice.trim());
+  if(!targetFolder){ toast('Dossier introuvable', 'ti-alert-circle'); return; }
+  DB = DB.map(i=> ids.includes(i.id) ? {...i, folder: targetFolder.id} : i);
+  selectedDocs.clear(); selectionMode = false;
+  save(); updateSidebar(); buildFolderTree();
+  if(fFolder) renderFolderView(fFolder);
+  toast(`Déplacé vers "${targetFolder.name}"`, 'ti-folder-symlink');
+}
+
+// ===== MULTI-FILE UPLOAD HANDLER =====
+async function handleFolderUpload(folderId, input){
+  const files = Array.from(input.files||[]);
+  if(!files.length) return;
+  for(const file of files){
+    if(currentUser && file.size > 5*1024*1024){
+      await uploadFileToStorage(file, folderId);
+    } else {
+      await uploadSingleBase64(file, folderId);
+    }
+  }
+  input.value = '';
+}
+
+async function uploadSingleBase64(file, folderId){
+  const MAX = 10*1024*1024;
+  if(file.size > MAX){ toast(`${file.name} trop volumineux (max 10MB hors ligne)`, 'ti-alert-circle'); return; }
+  toast(`Chargement : ${file.name}…`, 'ti-loader');
+  const fileData = await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(file);});
+  const item = {
+    id:Date.now()+Math.random(), espace:curEspace==='global'?folder_espace_of(folderId):curEspace,
+    type:'doc', docType:'file', title:file.name,
+    fileName:file.name, fileSize:file.size, fileData,
+    storageUrl:'', storagePath:'',
+    url:'', folder:folderId, tags:[], notes:'', rating:0,
+    status:'lu', author:'', mediaType:'', mediaData:'', coverUrl:'',
+    pageCur:0, pageTotal:0, collection:'', quotes:[],
+    date:new Date().toISOString().split('T')[0]
+  };
+  DB.push(item); save(); updateSidebar(); renderFolderView(folderId); buildFolderTree();
+  toast(`${file.name} ajouté !`, 'ti-file-check');
+}
+
+// Helper: get espace of a folder
+function folder_espace_of(folderId){
+  const f = FOLDERS.find(x=>x.id===folderId);
+  return f ? f.espace||'perso' : 'perso';
+}
+
 
 function formatSize(bytes){
   if(!bytes)return'';
@@ -2520,13 +2677,18 @@ function addHtmlToFolder(folderId){
   toast('Document HTML ajouté !');
 }
 
-function deleteDoc(id){
-  if(confirm('Supprimer ce document ?')){
-    const item = DB.find(i=>i.id===id);
-    DB = DB.filter(i=>i.id!==id); save(); updateSidebar();
-    if(item&&item.folder) renderFolderView(item.folder);
-    buildFolderTree(); toast('Supprimé','ti-trash');
+async function deleteDoc(id){
+  if(!confirm('Supprimer ce document ?')) return;
+  const item = DB.find(i=>i.id===id);
+  // Delete from Firebase Storage if cloud file
+  if(item && item.storagePath && currentUser){
+    try{ await storage.ref(item.storagePath).delete(); }
+    catch(e){ console.warn('Storage delete error:', e); }
   }
+  DB = DB.filter(i=>i.id!==id);
+  save(); updateSidebar();
+  if(item&&item.folder) renderFolderView(item.folder);
+  buildFolderTree(); toast('Supprimé','ti-trash');
 }
 
 function deleteFolder(id){
@@ -3205,7 +3367,7 @@ async function uploadFileToStorage(file, folderId){
         hideUploadProgress(progId);
         // Create doc item with storage URL instead of base64
         const item = {
-          id: Date.now(), espace: curEspace==='global'?'perso':curEspace,
+          id: Date.now(), espace: folder_espace_of(folderId),
           type:'doc', docType:'storage', title: file.name,
           fileName: file.name, fileSize: file.size,
           fileData: '', storageUrl: url, storagePath: path,
