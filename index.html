@@ -690,6 +690,7 @@ mark{background:var(--accent3);color:var(--accent);border-radius:2px;padding:0 1
       <div class="nav-flat" data-f="article" onclick="navFlat(this)"><i class="ti ti-link"></i>Articles<span class="tree-count" id="c-article">0</span></div>
       <div class="nav-flat" data-f="note" onclick="navFlat(this)"><i class="ti ti-notes"></i>Notes<span class="tree-count" id="c-note">0</span></div>
       <div class="nav-flat" data-f="media" onclick="navFlat(this)"><i class="ti ti-player-play"></i>Médias<span class="tree-count" id="c-media">0</span></div>
+      <div class="nav-flat" data-f="doc" onclick="navFlat(this)"><i class="ti ti-files"></i>Fichiers<span class="tree-count" id="c-doc">0</span></div>
       <div class="nav-flat" data-f="lu" onclick="navFlat(this)"><i class="ti ti-circle-check"></i>Lu / Vu</div>
       <div class="nav-flat" data-f="en-cours" onclick="navFlat(this)"><i class="ti ti-circle-half"></i>En cours</div>
       <div class="nav-flat" data-f="a-lire" onclick="navFlat(this)"><i class="ti ti-circle"></i>À lire</div>
@@ -1778,7 +1779,15 @@ function buildDashThemeDots(){
 // ===== FOLDER TREE =====
 function getCurDB(){
   if(curEspace==='global')return DB;
-  return DB.filter(i=>i.espace===curEspace);
+  return DB.filter(i=>{
+    if(i.espace===curEspace) return true;
+    // Also include docs whose folder belongs to this espace
+    if(i.type==='doc'&&i.folder){
+      const f=FOLDERS.find(x=>x.id===i.folder);
+      return f&&f.espace===curEspace;
+    }
+    return false;
+  });
 }
 function getCurFolders(){
   if(curEspace==='global')return FOLDERS;
@@ -1901,7 +1910,10 @@ function updateSidebar(){
   document.getElementById('sb-ec').textContent=data.filter(i=>i.status==='en-cours').length;
   document.getElementById('sb-al').textContent=data.filter(i=>i.status==='a-lire').length;
   document.getElementById('c-all').textContent=data.length;
-  ['livre','article','note','media'].forEach(t=>document.getElementById('c-'+t).textContent=data.filter(i=>i.type===t).length);
+  ['livre','article','note','media','doc'].forEach(t=>{
+    const el=document.getElementById('c-'+t);
+    if(el)el.textContent=data.filter(i=>i.type===t).length;
+  });
   const allTags=[...new Set(data.flatMap(i=>i.tags))].sort();
   const tc=document.getElementById('tag-cloud');
   tc.innerHTML=allTags.map(t=>`<span class="tag-chip${ftag===t?' on':''}" onclick="filterTag('${t}')">${t}</span>`).join('');
@@ -1914,14 +1926,17 @@ function filterTag(t){ftag=ftag===t?null:t;showPanel('bib');renderBib();}
 function getFiltered(){
   let list=getCurDB();
   if(['livre','article','note','media'].includes(filt))list=list.filter(i=>i.type===filt);
+  else if(filt==='doc')list=list.filter(i=>i.type==='doc');
   else if(['lu','en-cours','a-lire'].includes(filt))list=list.filter(i=>i.status===filt);
+  // Always exclude docs from non-doc filters (they live in folders)
+  if(!['doc','all'].includes(filt)&&filt!=='' )list=list.filter(i=>i.type!=='doc');
   if(fFolder)list=list.filter(i=>i.folder===fFolder);
-  if(ftag)list=list.filter(i=>i.tags.includes(ftag));
-  if(srch){const q=srch.toLowerCase();list=list.filter(i=>i.title.toLowerCase().includes(q)||i.author.toLowerCase().includes(q)||i.tags.join(' ').includes(q)||i.notes.toLowerCase().includes(q));}
+  if(ftag)list=list.filter(i=>(i.tags||[]).includes(ftag));
+  if(srch){const q=srch.toLowerCase();list=list.filter(i=>(i.title||'').toLowerCase().includes(q)||(i.author||'').toLowerCase().includes(q)||(i.tags||[]).join(' ').includes(q)||(i.notes||'').toLowerCase().includes(q)||(i.fileName||'').toLowerCase().includes(q));}
   list.sort((a,b)=>{
     if(sortMode==='date-desc')return new Date(b.date)-new Date(a.date);
     if(sortMode==='date-asc')return new Date(a.date)-new Date(b.date);
-    if(sortMode==='title')return a.title.localeCompare(b.title);
+    if(sortMode==='title')return (a.title||a.fileName||'').localeCompare(b.title||b.fileName||'');
     if(sortMode==='rating')return b.rating-a.rating;
     return 0;
   });
@@ -1931,6 +1946,34 @@ function starsH(r){return r?`<div class="stars">${'★'.repeat(r)}${'☆'.repeat
 
 // ===== RENDER CARDS =====
 function cardH(item){
+  // Doc files get special card
+  if(item.type==='doc'){
+    const icon = getDocIcon(item.docType||'file', item.fileName||item.title);
+    const src = item.storageUrl||item.fileData||item.url||'';
+    const meta = item.storageUrl?'☁️ Cloud':item.docType==='url'?'🔗 Lien':item.docType==='html'?'🌐 HTML':item.fileName||'Fichier';
+    const folder = FOLDERS.find(f=>f.id===item.folder);
+    if(vmode==='list'){
+      return`<div class="card card-list-r" data-id="${item.id}" style="cursor:pointer" onclick="openViewer(${item.id})">
+        <span style="font-size:20px;flex-shrink:0">${icon}</span>
+        <div class="card-title" style="flex:1">${item.title||item.fileName}</div>
+        <span style="font-size:11px;color:var(--text3)">${meta}</span>
+        ${folder?`<span class="tag" style="flex-shrink:0">${folder.icon} ${folder.name}</span>`:''}
+        <button class="icon-btn" onclick="event.stopPropagation();openViewer(${item.id})" title="Ouvrir"><i class="ti ti-eye"></i></button>
+      </div>`;
+    }
+    return`<div class="card" data-id="${item.id}" onclick="openViewer(${item.id})" style="cursor:pointer">
+      <div class="card-type-row">
+        <span style="font-size:22px">${icon}</span>
+        <span style="font-size:11px;color:var(--text3);margin-left:6px">${(item.fileName||'').split('.').pop().toUpperCase()||'DOC'}</span>
+        ${folder?`<span class="tag" style="margin-left:auto;font-size:10px">${folder.icon} ${folder.name}</span>`:''}
+      </div>
+      <div class="card-title" style="margin-top:6px">${item.title||item.fileName}</div>
+      <div class="card-author">${meta} ${item.fileSize?'· '+formatSize(item.fileSize):''}</div>
+      <button class="add-btn" style="width:100%;justify-content:center;margin-top:8px;font-size:12px" onclick="event.stopPropagation();openViewer(${item.id})">
+        <i class="ti ti-eye"></i> Ouvrir
+      </button>
+    </div>`;
+  }
   const ic=TYPE_ICONS[item.type]||'ti-file';
   const prog=item.pageTotal>0?Math.round(item.pageCur/item.pageTotal*100):0;
   const globalBadge=curEspace==='global'?`<span style="font-size:10px;opacity:.6">${ESPACES[item.espace]?.emoji||''}</span>`:'';
@@ -1996,7 +2039,24 @@ function renderBib(){
     </div>`;
   }
   html+=`<div class="sec-head"><h2>${fFolder?(FOLDERS.find(f=>f.id===fFolder)?.name||'Dossier'):ftag?`#${ftag}`:nm[filt]||'Tout'}</h2><span class="cnt-pill">${list.length}</span></div>`;
-  html+=list.length?`<div class="${vmode==='grid'?'grid':'list-v'}" id="items-grid">${list.map(cardH).join('')}</div>`:`<div class="empty"><i class="ti ti-books"></i><p>Aucun élément</p></div>`;
+  // Separate regular items from docs
+  const regularItems = list.filter(i=>i.type!=='doc');
+  const docItems = filt==='all' ? getCurDB().filter(i=>i.type==='doc'&&!i.folder) : list.filter(i=>i.type==='doc');
+  let gridHTML = '';
+  if(regularItems.length){
+    gridHTML += `<div class="${vmode==='grid'?'grid':'list-v'}" id="items-grid">${regularItems.map(cardH).join('')}</div>`;
+  }
+  if(docItems.length&&filt==='all'){
+    gridHTML += `<div class="sec-head" style="margin-top:16px"><h2>📎 Fichiers sans dossier</h2><span class="cnt-pill">${docItems.length}</span></div>`;
+    gridHTML += `<div class="${vmode==='grid'?'grid':'list-v'}">${docItems.map(cardH).join('')}</div>`;
+  }
+  if(filt==='doc'){
+    gridHTML = list.length ? `<div class="${vmode==='grid'?'grid':'list-v'}">${list.map(cardH).join('')}</div>` : '';
+  }
+  if(!gridHTML){
+    gridHTML = `<div class="empty"><i class="ti ti-books"></i><p>${filt==='doc'?'Aucun fichier uploadé':'Aucun élément'}</p>${filt==='doc'?'<p style="font-size:12px;color:var(--text3);margin-top:6px">Cliquez sur un dossier puis <b>Uploader</b></p>':''}</div>`;
+  }
+  html += gridHTML;
   bib.innerHTML=html;
   bib.querySelectorAll('.card').forEach(c=>{
     c.onclick=()=>openDetail(+c.dataset.id);
