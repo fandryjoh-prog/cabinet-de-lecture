@@ -387,7 +387,7 @@ select option{background:var(--bg);color:var(--text);}
 
 /* ===== LECTEUR INTERNE ===== */
 /* viewer is now #viewer-overlay */
-#viewer-overlay{display:none;}
+#viewer-overlay{display:none !important;}
 #viewer-overlay.open{display:flex !important;}
 .viewer-topbar{height:48px;background:var(--bg);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;padding:0 14px;flex-shrink:0;box-shadow:var(--shadow);}
 .viewer-back{display:flex;align-items:center;gap:6px;background:transparent;border:none;cursor:pointer;color:var(--text2);font-size:13px;font-family:'Jost',sans-serif;padding:6px 10px;border-radius:7px;transition:.12s;}
@@ -729,7 +729,7 @@ mark{background:var(--accent3);color:var(--accent);border-radius:2px;padding:0 1
 </div>
 
   <!-- VIEWER — overlay complet dans s-app -->
-  <div id="viewer-overlay" style="position:absolute;inset:0;z-index:30;flex-direction:column;background:var(--bg3);display:none;">
+  <div id="viewer-overlay" style="position:absolute;inset:0;z-index:30;flex-direction:column;background:var(--bg3);">
     <div class="viewer-topbar" id="viewer-topbar">
       <button class="viewer-back" onclick="closeViewer()"><i class="ti ti-arrow-left"></i>Retour</button>
       <div class="viewer-title" id="viewer-title">Fichier</div>
@@ -783,16 +783,6 @@ mark{background:var(--accent3);color:var(--accent);border-radius:2px;padding:0 1
         <div class="chart-card"><h3>Notes</h3><canvas id="chart-ratings" height="180"></canvas></div>
         <div class="chart-card"><h3>Top tags</h3><div id="top-tags-list" style="margin-top:8px;display:flex;flex-direction:column;gap:7px"></div></div>
       </div>
-    </div>
-    <div class="panel" id="panel-viewer">
-      <div class="viewer-topbar" id="viewer-topbar">
-        <button class="viewer-back" onclick="closeViewer()"><i class="ti ti-arrow-left"></i>Retour</button>
-        <div class="viewer-title" id="viewer-title">Fichier</div>
-        <div class="viewer-type" id="viewer-type">—</div>
-        <div class="viewer-actions" id="viewer-actions"></div>
-        <button id="fs-btn-viewer" onclick="toggleFullscreen()" title="Plein écran (F)" style="background:transparent;border:1px solid var(--border);border-radius:7px;padding:5px 8px;cursor:pointer;color:var(--text3);font-size:15px;display:flex;align-items:center;transition:.12s;flex-shrink:0;"><i class="ti ti-maximize"></i></button>
-      </div>
-      <div class="viewer-body" id="viewer-body"></div>
     </div>
 
     <div class="panel" id="panel-settings" style="padding:0;overflow-y:auto;background:#0a0c10;">
@@ -1151,10 +1141,14 @@ function openViewer(itemOrId){
   viewerItem = item;
   viewerPrevPanel = document.querySelector('.panel.active')?.id?.replace('panel-','') || 'bib';
 
+  // Show overlay immediately so DOM is ready for render
+  const ov0 = document.getElementById('viewer-overlay');
+  if(ov0){ ov0.style.display=''; ov0.classList.add('open'); }
+
   document.getElementById('viewer-title').textContent = item.title||item.fileName||'Fichier';
   const body = document.getElementById('viewer-body');
   const actions = document.getElementById('viewer-actions');
-  body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text3);font-size:13px;gap:8px"><i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i>Chargement…</div>';
+  body.innerHTML = '';
   actions.innerHTML = '';
 
   // Determine best source URL: storageUrl > fileData > mediaData > url
@@ -1193,8 +1187,6 @@ function openViewer(itemOrId){
   }
 
   // === RENDER ===
-  // Render immediately
-  if(true){(()=>{
     if(isPDF){
       document.getElementById('viewer-type').textContent = 'PDF';
       body.innerHTML = `<iframe class="pdf-viewer" src="${src}" title="${item.title}"></iframe>`;
@@ -1364,11 +1356,7 @@ function openViewer(itemOrId){
         ${src&&src.startsWith('data:')?`<a href="${src}" download="${item.fileName||item.title}" class="add-btn" style="text-decoration:none"><i class="ti ti-download"></i>Télécharger</a>`:''}
       </div>`;
     }
-  })();}
 
-  // Show overlay
-  const ov = document.getElementById('viewer-overlay');
-  if(ov){ ov.style.display=''; ov.classList.add('open'); }
 }
 
 function closeViewer(){
