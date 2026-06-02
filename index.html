@@ -1193,7 +1193,8 @@ function openViewer(itemOrId){
   }
 
   // === RENDER ===
-  setTimeout(()=>{
+  // Render immediately
+  if(true){(()=>{
     if(isPDF){
       document.getElementById('viewer-type').textContent = 'PDF';
       body.innerHTML = `<iframe class="pdf-viewer" src="${src}" title="${item.title}"></iframe>`;
@@ -1254,14 +1255,48 @@ function openViewer(itemOrId){
     }
     else if(isHtml){
       document.getElementById('viewer-type').textContent = 'HTML';
-      // Try to render in iframe
-      if(src.startsWith('blob:') || src.startsWith('http')){
-        body.innerHTML = `<iframe class="html-viewer" src="${src}" sandbox="allow-scripts allow-same-origin allow-forms" title="${item.title}"></iframe>`;
-      } else if(item.notes){
-        // Render inline HTML from notes
-        const blob = new Blob([item.notes],{type:'text/html'});
+      let htmlContent = '';
+      if(src.startsWith('data:text/html') || src.startsWith('data:application/octet') || src.startsWith('data:')){
+        try{
+          const b64 = src.split(',')[1];
+          htmlContent = atob(b64);
+        }catch(e){ htmlContent = ''; }
+      } else if(item.notes && item.notes.trim().startsWith('<')){
+        htmlContent = item.notes;
+      }
+
+      if(htmlContent){
+        // Use blob URL — NO sandbox restriction so external fonts/scripts load fully
+        const blob = new Blob([htmlContent],{type:'text/html;charset=utf-8'});
         const blobUrl = URL.createObjectURL(blob);
-        body.innerHTML = `<iframe class="html-viewer" src="${blobUrl}" sandbox="allow-scripts" title="${item.title}"></iframe>`;
+        const iframe = document.createElement('iframe');
+        iframe.className = 'html-viewer';
+        // No sandbox = full rendering (fonts, CDN, scripts all work)
+        iframe.src = blobUrl;
+        iframe.onload = ()=>{ URL.revokeObjectURL(blobUrl); };
+        body.innerHTML = '';
+        body.appendChild(iframe);
+        // Add open-in-tab button for convenience
+        actions.innerHTML += `<a href="${blobUrl}" target="_blank" class="icon-btn" title="Ouvrir en plein écran"><i class="ti ti-external-link"></i></a>`;
+      } else if(item.storageUrl){
+        // Cloud file — open directly, no sandbox
+        const iframe = document.createElement('iframe');
+        iframe.className = 'html-viewer';
+        iframe.src = item.storageUrl;
+        body.innerHTML = '';
+        body.appendChild(iframe);
+      } else if(src.startsWith('blob:') || src.startsWith('http') || src.startsWith('https')){
+        const iframe = document.createElement('iframe');
+        iframe.className = 'html-viewer';
+        iframe.src = src;
+        body.innerHTML = '';
+        body.appendChild(iframe);
+      } else {
+        body.innerHTML = `<div class="unsupported-wrap">
+          <i class="ti ti-code" style="font-size:52px"></i>
+          <h3>${item.title||item.fileName}</h3>
+          <p>Impossible de prévisualiser ce fichier HTML.</p>
+        </div>`;
       }
     }
     else if(isNote || isText){
@@ -1329,7 +1364,7 @@ function openViewer(itemOrId){
         ${src&&src.startsWith('data:')?`<a href="${src}" download="${item.fileName||item.title}" class="add-btn" style="text-decoration:none"><i class="ti ti-download"></i>Télécharger</a>`:''}
       </div>`;
     }
-  }, 50);
+  })();}
 
   // Show overlay
   const ov = document.getElementById('viewer-overlay');
