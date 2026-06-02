@@ -1150,117 +1150,187 @@ function openViewer(itemOrId){
   viewerItem = item;
   viewerPrevPanel = document.querySelector('.panel.active')?.id?.replace('panel-','') || 'bib';
 
-  document.getElementById('viewer-title').textContent = item.title;
+  document.getElementById('viewer-title').textContent = item.title||item.fileName||'Fichier';
   const body = document.getElementById('viewer-body');
   const actions = document.getElementById('viewer-actions');
-  body.innerHTML = '';
+  body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text3);font-size:13px;gap:8px"><i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i>Chargement…</div>';
   actions.innerHTML = '';
 
-  const ext = (item.fileName||'').split('.').pop().toLowerCase();
-  const isPDF = ext==='pdf' || item.fileData?.startsWith('data:application/pdf');
-  const isImg = ['jpg','jpeg','png','gif','webp','svg','bmp'].includes(ext) || item.fileData?.startsWith('data:image');
-  const isAudio = ['mp3','wav','ogg','m4a','aac','flac'].includes(ext) || item.fileData?.startsWith('data:audio') || item.mediaType==='audio' || item.mediaType==='podcast';
-  const isVideo = ['mp4','webm','mkv','avi','mov'].includes(ext) || item.fileData?.startsWith('data:video') || item.mediaType==='video';
-  const isHtml = item.docType==='html' || ext==='html' || ext==='htm';
-  const isText = ['txt','md','csv','json','xml','js','css','py'].includes(ext);
-  const isNote = item.type==='note';
-  const isUrl = item.docType==='url';
-  const isYT = item.url && item.url.includes('youtube');
+  // Determine best source URL: storageUrl > fileData > mediaData > url
+  const src = item.storageUrl || item.fileData || item.mediaData || item.url || '';
+  const ext = ((item.fileName||item.title||'').split('.').pop()||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+  const mime = item.fileData ? item.fileData.split(';')[0].replace('data:','') : '';
 
-  // Download button always
-  if(item.fileData){
-    actions.innerHTML += `<a href="${item.fileData}" download="${item.fileName||item.title}" class="icon-btn" title="Télécharger"><i class="ti ti-download"></i></a>`;
+  // Type detection — covers base64, storage URL, and direct URLs
+  const isPDF    = ext==='pdf' || mime==='application/pdf' || (item.storageUrl&&item.fileName?.endsWith('.pdf'));
+  const isImg    = ['jpg','jpeg','png','gif','webp','svg','bmp','ico','tiff','avif'].includes(ext)
+                || mime.startsWith('image/') || (item.storageUrl&&/\.(jpg|jpeg|png|gif|webp|svg|bmp)$/i.test(item.storageUrl));
+  const isVideo  = ['mp4','webm','ogg','mov','avi','mkv','m4v'].includes(ext)
+                || mime.startsWith('video/') || item.mediaType==='video'
+                || (item.storageUrl&&/\.(mp4|webm|mov|avi|mkv)$/i.test(item.storageUrl));
+  const isAudio  = ['mp3','wav','ogg','m4a','aac','flac','opus'].includes(ext)
+                || mime.startsWith('audio/') || item.mediaType==='audio' || item.mediaType==='podcast'
+                || (item.storageUrl&&/\.(mp3|wav|m4a|aac|flac)$/i.test(item.storageUrl));
+  const isHtml   = ext==='html' || ext==='htm' || item.docType==='html';
+  const isText   = ['txt','md','csv','json','xml','js','css','py','ts','sh','yaml','yml','log'].includes(ext);
+  const isNote   = item.type==='note';
+  const isYT     = src.includes('youtube.com') || src.includes('youtu.be');
+  const isUrl    = item.docType==='url' && !isYT;
+  const isOffice = ['doc','docx','xls','xlsx','ppt','pptx'].includes(ext);
+  const isZip    = ['zip','rar','7z','tar','gz'].includes(ext);
+
+  // Action buttons
+  if(src && src.startsWith('data:')){
+    actions.innerHTML += `<a href="${src}" download="${item.fileName||item.title||'fichier'}" class="icon-btn" title="Télécharger"><i class="ti ti-download"></i></a>`;
   }
-  if(item.url&&item.url.startsWith('http')){
+  if(item.storageUrl){
+    actions.innerHTML += `<a href="${item.storageUrl}" target="_blank" class="icon-btn" title="Ouvrir dans un onglet"><i class="ti ti-external-link"></i></a>`;
+    actions.innerHTML += `<a href="${item.storageUrl}" download="${item.fileName||item.title||'fichier'}" class="icon-btn" title="Télécharger"><i class="ti ti-download"></i></a>`;
+  }
+  if(item.url && item.url.startsWith('http') && !item.storageUrl){
     actions.innerHTML += `<a href="${item.url}" target="_blank" class="icon-btn" title="Ouvrir dans un onglet"><i class="ti ti-external-link"></i></a>`;
   }
 
-  if(isPDF && item.fileData){
-    document.getElementById('viewer-type').textContent = 'PDF';
-    body.innerHTML = `<iframe class="pdf-viewer" src="${item.fileData}" title="${item.title}"></iframe>`;
-  }
-  else if(isImg && item.fileData){
-    document.getElementById('viewer-type').textContent = 'Image';
-    imgZoom = 1;
-    body.innerHTML = `<div class="img-viewer-wrap" id="img-wrap">
-      <img id="viewer-img" src="${item.fileData}" alt="${item.title}" style="transform:scale(1)"/>
-      <div class="img-zoom-bar">
-        <button onclick="zoomImg(-0.2)"><i class="ti ti-minus"></i></button>
-        <span id="zoom-pct">100%</span>
-        <button onclick="zoomImg(0.2)"><i class="ti ti-plus"></i></button>
-        <button onclick="zoomImg(0,'fit')"><i class="ti ti-maximize"></i></button>
-      </div>
-    </div>`;
-    // Mouse wheel zoom
-    const wrap = document.getElementById('img-wrap');
-    if(wrap) wrap.addEventListener('wheel', e=>{e.preventDefault();zoomImg(e.deltaY<0?0.15:-0.15);});
-  }
-  else if(isHtml && item.url){
-    document.getElementById('viewer-type').textContent = 'HTML';
-    body.innerHTML = `<iframe class="html-viewer" src="${item.url}" sandbox="allow-scripts allow-same-origin" title="${item.title}"></iframe>`;
-  }
-  else if((isAudio||isVideo) && item.mediaData){
-    document.getElementById('viewer-type').textContent = isAudio?'Audio':'Vidéo';
-    const tag = isAudio?'audio':'video';
-    body.innerHTML = `<div class="media-viewer-wrap">
-      <div class="media-viewer-box">
-        <h2>${item.title}</h2>
-        ${item.author?`<div class="mv-author">${item.author}</div>`:''}
-        <${tag} controls src="${item.mediaData}" style="width:100%;border-radius:8px;margin-bottom:${item.notes?'16px':'0'}"></${tag}>
-        ${item.notes?`<div class="mv-notes">${item.notes}</div>`:''}
-      </div>
-    </div>`;
-  }
-  else if(isYT){
-    document.getElementById('viewer-type').textContent = 'YouTube';
-    const ytid = item.url.match(/(?:v=|youtu\.be\/)([^&\n?#]+)/);
-    if(ytid){
-      body.innerHTML = `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:var(--bg3);padding:24px;">
-        <iframe width="100%" height="100%" style="max-height:520px;border-radius:12px;box-shadow:var(--shadow2)"
-          src="https://www.youtube.com/embed/${ytid[1]}?autoplay=0" frameborder="0" allowfullscreen></iframe>
+  // === RENDER ===
+  setTimeout(()=>{
+    if(isPDF){
+      document.getElementById('viewer-type').textContent = 'PDF';
+      body.innerHTML = `<iframe class="pdf-viewer" src="${src}" title="${item.title}"></iframe>`;
+    }
+    else if(isImg){
+      document.getElementById('viewer-type').textContent = 'Image';
+      imgZoom = 1;
+      body.innerHTML = `<div class="img-viewer-wrap" id="img-wrap">
+        <img id="viewer-img" src="${src}" alt="${item.title||''}" style="transform:scale(1);max-width:100%;max-height:100%;object-fit:contain;"
+          onerror="this.parentElement.innerHTML='<div style=\"padding:20px;color:var(--text3);text-align:center\"><i class=\"ti ti-photo-off\" style=\"font-size:48px\"></i><p style=\"margin-top:10px\">Impossible de charger l\'image</p></div>'"/>
+        <div class="img-zoom-bar">
+          <button onclick="zoomImg(-0.2)"><i class="ti ti-minus"></i></button>
+          <span id="zoom-pct">100%</span>
+          <button onclick="zoomImg(0.2)"><i class="ti ti-plus"></i></button>
+          <button onclick="zoomImg(0,'fit')"><i class="ti ti-maximize"></i></button>
+        </div>
+      </div>`;
+      const wrap = document.getElementById('img-wrap');
+      if(wrap) wrap.addEventListener('wheel', e=>{e.preventDefault();zoomImg(e.deltaY<0?0.15:-0.15);},{passive:false});
+    }
+    else if(isVideo){
+      document.getElementById('viewer-type').textContent = 'Vidéo';
+      body.innerHTML = `<div class="media-viewer-wrap">
+        <div class="media-viewer-box" style="max-width:900px">
+          <div style="font-family:'Playfair Display',serif;font-size:18px;margin-bottom:${item.author?'4px':'14px'}">${item.title||item.fileName}</div>
+          ${item.author?`<div style="font-size:13px;color:var(--text3);font-style:italic;margin-bottom:14px">${item.author}</div>`:''}
+          <video controls src="${src}" style="width:100%;border-radius:10px;background:#000;max-height:60vh"
+            onerror="this.insertAdjacentHTML('afterend','<p style=\"color:var(--text3);margin-top:8px;font-size:12px\">Erreur de lecture. <a href=\"${src}\" target=\"_blank\" style=\"color:var(--accent)\">Ouvrir dans un onglet</a></p>')">
+            Votre navigateur ne supporte pas la lecture vidéo.
+          </video>
+          ${item.notes?`<div class="mv-notes" style="margin-top:14px">${item.notes}</div>`:''}
+        </div>
       </div>`;
     }
-  }
-  else if(isUrl){
-    document.getElementById('viewer-type').textContent = 'Lien';
-    body.innerHTML = `<div class="unsupported-wrap">
-      <i class="ti ti-world"></i>
-      <h3>${item.title}</h3>
-      <p style="word-break:break-all;color:var(--accent)">${item.url}</p>
-      <p>Les liens externes ne peuvent pas être affichés en interne pour des raisons de sécurité.</p>
-      <a href="${item.url}" target="_blank" class="add-btn" style="text-decoration:none;margin-top:8px"><i class="ti ti-external-link"></i>Ouvrir dans un onglet</a>
-    </div>`;
-  }
-  else if(isNote || isText){
-    document.getElementById('viewer-type').textContent = isNote?'Note':'Texte';
-    textEditorDirty = false;
-    body.innerHTML = `<div class="text-editor-wrap">
-      <div class="text-editor-toolbar">
-        <button class="te-btn" onclick="teFormat('bold')" title="Gras"><b>G</b></button>
-        <button class="te-btn" onclick="teFormat('italic')" title="Italique"><i>I</i></button>
-        <button class="te-btn" onclick="teFormat('underline')" title="Souligné"><u>S</u></button>
-        <div class="te-sep"></div>
-        <button class="te-btn" onclick="teInsert('\n• ')" title="Liste">• Liste</button>
-        <button class="te-btn" onclick="teInsert('\n# ')" title="Titre"># Titre</button>
-        <div class="te-sep"></div>
-        <button class="te-btn" onclick="saveTextEditor()" style="background:var(--accent3);color:var(--accent);border-color:var(--accent)"><i class="ti ti-device-floppy"></i> Sauvegarder</button>
-        <div class="te-save-indicator" id="te-save-ind"><i class="ti ti-check" style="color:var(--accent)"></i>Sauvegardé</div>
-      </div>
-      <textarea class="text-editor-area" id="text-editor-area" spellcheck="true" oninput="onTextEdit()">${(item.notes||'').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</textarea>
-    </div>`;
-  }
-  else {
-    // Generic unsupported
-    document.getElementById('viewer-type').textContent = ext.toUpperCase()||'Fichier';
-    body.innerHTML = `<div class="unsupported-wrap">
-      <i class="ti ti-file-unknown"></i>
-      <h3>${item.fileName||item.title}</h3>
-      <p>Ce format ne peut pas être prévisualisé en interne.</p>
-      ${item.fileData?`<a href="${item.fileData}" download="${item.fileName||item.title}" class="add-btn" style="text-decoration:none;margin-top:8px"><i class="ti ti-download"></i>Télécharger</a>`:''}
-    </div>`;
-  }
+    else if(isAudio){
+      document.getElementById('viewer-type').textContent = 'Audio';
+      body.innerHTML = `<div class="media-viewer-wrap">
+        <div class="media-viewer-box">
+          <div style="text-align:center;font-size:48px;margin-bottom:14px">${item.mediaType==='podcast'?'🎙️':'🎵'}</div>
+          <div style="font-family:'Playfair Display',serif;font-size:20px;margin-bottom:${item.author?'4px':'16px'};text-align:center">${item.title||item.fileName}</div>
+          ${item.author?`<div style="font-size:13px;color:var(--text3);font-style:italic;margin-bottom:16px;text-align:center">${item.author}</div>`:''}
+          <audio controls src="${src}" style="width:100%;margin-bottom:${item.notes?'16px':'0'}">
+            Votre navigateur ne supporte pas l'audio.
+          </audio>
+          ${item.notes?`<div class="mv-notes">${item.notes}</div>`:''}
+        </div>
+      </div>`;
+    }
+    else if(isYT){
+      document.getElementById('viewer-type').textContent = 'YouTube';
+      const ytid = src.match(/(?:v=|youtu\.be\/)([^&\n?#]+)/);
+      if(ytid){
+        body.innerHTML = `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:var(--bg3);padding:24px;">
+          <iframe width="100%" height="100%" style="max-height:560px;border-radius:12px;box-shadow:var(--shadow2)"
+            src="https://www.youtube.com/embed/${ytid[1]}?autoplay=0" frameborder="0" allowfullscreen></iframe>
+        </div>`;
+      }
+    }
+    else if(isHtml){
+      document.getElementById('viewer-type').textContent = 'HTML';
+      // Try to render in iframe
+      if(src.startsWith('blob:') || src.startsWith('http')){
+        body.innerHTML = `<iframe class="html-viewer" src="${src}" sandbox="allow-scripts allow-same-origin allow-forms" title="${item.title}"></iframe>`;
+      } else if(item.notes){
+        // Render inline HTML from notes
+        const blob = new Blob([item.notes],{type:'text/html'});
+        const blobUrl = URL.createObjectURL(blob);
+        body.innerHTML = `<iframe class="html-viewer" src="${blobUrl}" sandbox="allow-scripts" title="${item.title}"></iframe>`;
+      }
+    }
+    else if(isNote || isText){
+      document.getElementById('viewer-type').textContent = isNote?'Note':'Texte';
+      textEditorDirty = false;
+      const content = item.notes || item.fileData || '';
+      body.innerHTML = `<div class="text-editor-wrap">
+        <div class="text-editor-toolbar">
+          <button class="te-btn" onclick="teFormat('bold')"><b>G</b></button>
+          <button class="te-btn" onclick="teFormat('italic')"><i>I</i></button>
+          <button class="te-btn" onclick="teFormat('underline')"><u>S</u></button>
+          <div class="te-sep"></div>
+          <button class="te-btn" onclick="teInsert('\n• ')">• Liste</button>
+          <button class="te-btn" onclick="teInsert('\n# ')"># Titre</button>
+          <div class="te-sep"></div>
+          <button class="te-btn" onclick="saveTextEditor()" style="background:var(--accent3);color:var(--accent);border-color:var(--accent)"><i class="ti ti-device-floppy"></i> Sauvegarder</button>
+          <div class="te-save-indicator" id="te-save-ind"><i class="ti ti-check" style="color:var(--accent)"></i>Sauvegardé</div>
+        </div>
+        <textarea class="text-editor-area" id="text-editor-area" spellcheck="true" oninput="onTextEdit()">${(content).replace(/</g,'&lt;').replace(/>/g,'&gt;')}</textarea>
+      </div>`;
+    }
+    else if(isUrl){
+      document.getElementById('viewer-type').textContent = 'Lien';
+      body.innerHTML = `<div class="unsupported-wrap">
+        <i class="ti ti-world" style="font-size:52px"></i>
+        <h3>${item.title}</h3>
+        <p style="word-break:break-all;color:var(--accent);margin:8px 0">${item.url}</p>
+        <p style="margin-bottom:16px">Les liens externes ne peuvent pas s'afficher directement ici.</p>
+        <a href="${item.url}" target="_blank" class="add-btn" style="text-decoration:none"><i class="ti ti-external-link"></i>Ouvrir dans un onglet</a>
+      </div>`;
+    }
+    else if(isOffice){
+      document.getElementById('viewer-type').textContent = ext.toUpperCase();
+      // Use Office Online viewer for storage URLs
+      const viewUrl = item.storageUrl
+        ? `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(item.storageUrl)}`
+        : null;
+      if(viewUrl){
+        body.innerHTML = `<iframe src="${viewUrl}" style="width:100%;height:100%;border:none" title="${item.title}"></iframe>`;
+      } else {
+        body.innerHTML = `<div class="unsupported-wrap">
+          <i class="ti ti-file-spreadsheet" style="font-size:52px"></i>
+          <h3>${item.fileName||item.title}</h3>
+          <p>Prévisualisation Office disponible uniquement pour les fichiers cloud.</p>
+          ${src?`<a href="${src}" download="${item.fileName||item.title}" class="add-btn" style="text-decoration:none;margin-top:8px"><i class="ti ti-download"></i>Télécharger</a>`:''}
+        </div>`;
+      }
+    }
+    else if(isZip){
+      document.getElementById('viewer-type').textContent = 'Archive';
+      body.innerHTML = `<div class="unsupported-wrap">
+        <i class="ti ti-file-zip" style="font-size:52px"></i>
+        <h3>${item.fileName||item.title}</h3>
+        <p>Les archives ne peuvent pas être prévisualisées.</p>
+        ${src?`<a href="${src}" download="${item.fileName||item.title}" class="add-btn" style="text-decoration:none;margin-top:8px"><i class="ti ti-download"></i>Télécharger</a>`:''}
+      </div>`;
+    }
+    else {
+      document.getElementById('viewer-type').textContent = (ext||'Fichier').toUpperCase();
+      body.innerHTML = `<div class="unsupported-wrap">
+        <i class="ti ti-file" style="font-size:52px"></i>
+        <h3>${item.fileName||item.title}</h3>
+        <p style="margin-bottom:16px">Format non prévisualisable directement.</p>
+        ${src&&!src.startsWith('data:')?`<a href="${src}" target="_blank" class="add-btn" style="text-decoration:none"><i class="ti ti-external-link"></i>Ouvrir</a>`:''}
+        ${src&&src.startsWith('data:')?`<a href="${src}" download="${item.fileName||item.title}" class="add-btn" style="text-decoration:none"><i class="ti ti-download"></i>Télécharger</a>`:''}
+      </div>`;
+    }
+  }, 50);
 
-  // Show overlay — covers full app area
+  // Show overlay
   const ov = document.getElementById('viewer-overlay');
   if(ov){ ov.style.display=''; ov.classList.add('open'); }
 }
@@ -3423,16 +3493,7 @@ async function uploadDocToFolder(folderId, input){
   await _origUploadDocToFolder(folderId, input);
 }
 
-// Patch openViewer to handle storageUrl
-const _origOpenViewer = openViewer;
-function openViewer(itemOrId){
-  const item = typeof itemOrId==='number' ? DB.find(i=>i.id===itemOrId) : itemOrId;
-  if(item && item.storageUrl && !item.fileData){
-    // Use storageUrl as src
-    item._viewerUrl = item.storageUrl;
-  }
-  _origOpenViewer(itemOrId);
-}
+// openViewer handles storageUrl natively
 
 
 typeChange();
