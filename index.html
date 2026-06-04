@@ -1151,23 +1151,22 @@ function openViewer(itemOrId){
   body.innerHTML = '';
   actions.innerHTML = '';
 
-  // Determine best source URL: storageUrl > fileData > mediaData > url
+  // Best source: storageUrl first (always reliable), then fileData/mediaData, then url
   const src = item.storageUrl || item.fileData || item.mediaData || item.url || '';
   const ext = ((item.fileName||item.title||'').split('.').pop()||'').toLowerCase().replace(/[^a-z0-9]/g,'');
-  const mime = item.fileData ? item.fileData.split(';')[0].replace('data:','') : '';
+  const mime = item.mimeType || (item.fileData ? item.fileData.split(';')[0].replace('data:','') : '') || '';
 
-  // Type detection — covers base64, storage URL, and direct URLs
-  const isPDF    = ext==='pdf' || mime==='application/pdf' || (item.storageUrl&&item.fileName?.endsWith('.pdf'));
-  const isImg    = ['jpg','jpeg','png','gif','webp','svg','bmp','ico','tiff','avif'].includes(ext)
-                || mime.startsWith('image/') || (item.storageUrl&&/\.(jpg|jpeg|png|gif|webp|svg|bmp)$/i.test(item.storageUrl));
-  const isVideo  = ['mp4','webm','ogg','mov','avi','mkv','m4v'].includes(ext)
-                || mime.startsWith('video/') || item.mediaType==='video'
-                || (item.storageUrl&&/\.(mp4|webm|mov|avi|mkv)$/i.test(item.storageUrl));
-  const isAudio  = ['mp3','wav','ogg','m4a','aac','flac','opus'].includes(ext)
-                || mime.startsWith('audio/') || item.mediaType==='audio' || item.mediaType==='podcast'
-                || (item.storageUrl&&/\.(mp3|wav|m4a|aac|flac)$/i.test(item.storageUrl));
-  const isHtml   = ext==='html' || ext==='htm' || item.docType==='html';
-  const isText   = ['txt','md','csv','json','xml','js','css','py','ts','sh','yaml','yml','log'].includes(ext);
+  // Type detection — priority: explicit docType > mime > extension
+  const isPDF    = item.docType==='pdf' || ext==='pdf' || mime==='application/pdf';
+  const isImg    = item.docType==='image' || mime.startsWith('image/')
+                || ['jpg','jpeg','png','gif','webp','svg','bmp','ico','tiff','avif'].includes(ext);
+  const isVideo  = item.docType==='video' || mime.startsWith('video/') || item.mediaType==='video'
+                || ['mp4','webm','mov','avi','mkv','m4v'].includes(ext);
+  const isAudio  = item.docType==='audio' || mime.startsWith('audio/')
+                || item.mediaType==='audio' || item.mediaType==='podcast'
+                || ['mp3','wav','m4a','aac','flac','opus'].includes(ext);
+  const isHtml   = item.docType==='html' || ext==='html' || ext==='htm';
+  const isText   = item.type==='note' || ['txt','md','csv','json','xml','js','css','py','ts','sh','yaml','yml','log'].includes(ext);
   const isNote   = item.type==='note';
   const isYT     = src.includes('youtube.com') || src.includes('youtu.be');
   const isUrl    = item.docType==='url' && !isYT;
@@ -1213,18 +1212,20 @@ function openViewer(itemOrId){
     else if(isImg){
       document.getElementById('viewer-type').textContent = 'Image';
       imgZoom = 1;
+      const imgSrc = item.storageUrl || src;
       body.innerHTML = `<div class="img-viewer-wrap" id="img-wrap">
-        <img id="viewer-img" src="${src}" alt="${item.title||''}" style="transform:scale(1);max-width:100%;max-height:100%;object-fit:contain;"
-          onerror="this.parentElement.innerHTML='<div style=\"padding:20px;color:var(--text3);text-align:center\"><i class=\"ti ti-photo-off\" style=\"font-size:48px\"></i><p style=\"margin-top:10px\">Impossible de charger l\'image</p></div>'"/>
+        <img id="viewer-img" src="${imgSrc}" alt="${item.title||''}"
+          style="transform:scale(1);max-width:90%;max-height:90%;object-fit:contain;border-radius:4px;box-shadow:var(--shadow2);"
+          onerror="this.outerHTML='<div style=\"padding:20px;color:var(--text3);text-align:center\"><i class=\"ti ti-photo-off\" style=\"font-size:48px\"></i><p style=\"margin-top:10px\">Impossible de charger l\'image</p></div>'"/>
         <div class="img-zoom-bar">
-          <button onclick="zoomImg(-0.2)"><i class="ti ti-minus"></i></button>
+          <button onclick="zoomImg(-0.25)"><i class="ti ti-minus"></i></button>
           <span id="zoom-pct">100%</span>
-          <button onclick="zoomImg(0.2)"><i class="ti ti-plus"></i></button>
+          <button onclick="zoomImg(0.25)"><i class="ti ti-plus"></i></button>
           <button onclick="zoomImg(0,'fit')"><i class="ti ti-maximize"></i></button>
         </div>
       </div>`;
       const wrap = document.getElementById('img-wrap');
-      if(wrap) wrap.addEventListener('wheel', e=>{e.preventDefault();zoomImg(e.deltaY<0?0.15:-0.15);},{passive:false});
+      if(wrap) wrap.addEventListener('wheel', e=>{e.preventDefault();zoomImg(e.deltaY<0?0.2:-0.2);},{passive:false});
     }
     else if(isVideo){
       document.getElementById('viewer-type').textContent = 'Vidéo';
@@ -1232,7 +1233,7 @@ function openViewer(itemOrId){
         <div class="media-viewer-box" style="max-width:900px">
           <div style="font-family:'Playfair Display',serif;font-size:18px;margin-bottom:${item.author?'4px':'14px'}">${item.title||item.fileName}</div>
           ${item.author?`<div style="font-size:13px;color:var(--text3);font-style:italic;margin-bottom:14px">${item.author}</div>`:''}
-          <video controls src="${src}" style="width:100%;border-radius:10px;background:#000;max-height:60vh"
+          <video controls src="${mediaSrc}" style="width:100%;border-radius:10px;background:#000;max-height:60vh"
             onerror="this.insertAdjacentHTML('afterend','<p style=\"color:var(--text3);margin-top:8px;font-size:12px\">Erreur de lecture. <a href=\"${src}\" target=\"_blank\" style=\"color:var(--accent)\">Ouvrir dans un onglet</a></p>')">
             Votre navigateur ne supporte pas la lecture vidéo.
           </video>
@@ -1247,7 +1248,7 @@ function openViewer(itemOrId){
           <div style="text-align:center;font-size:48px;margin-bottom:14px">${item.mediaType==='podcast'?'🎙️':'🎵'}</div>
           <div style="font-family:'Playfair Display',serif;font-size:20px;margin-bottom:${item.author?'4px':'16px'};text-align:center">${item.title||item.fileName}</div>
           ${item.author?`<div style="font-size:13px;color:var(--text3);font-style:italic;margin-bottom:16px;text-align:center">${item.author}</div>`:''}
-          <audio controls src="${src}" style="width:100%;margin-bottom:${item.notes?'16px':'0'}">
+          <audio controls src="${mediaSrc}" style="width:100%;margin-bottom:${item.notes?'16px':'0'}">
             Votre navigateur ne supporte pas l'audio.
           </audio>
           ${item.notes?`<div class="mv-notes">${item.notes}</div>`:''}
@@ -1391,6 +1392,13 @@ function openViewer(itemOrId){
 function closeViewer(){
   // Save text if dirty before leaving
   if(textEditorDirty) saveTextEditor();
+  // Revoke any blob URLs from HTML viewer
+  const body = document.getElementById('viewer-body');
+  if(body){
+    const iframe = body.querySelector('iframe');
+    if(iframe && iframe._blobUrl){ URL.revokeObjectURL(iframe._blobUrl); }
+    body.innerHTML = '';
+  }
   // Hide overlay
   const ov = document.getElementById('viewer-overlay');
   if(ov){ ov.classList.remove('open'); ov.style.display=''; }
@@ -2758,33 +2766,16 @@ function moveSelectedDocs(){
 async function handleFolderUpload(folderId, input){
   const files = Array.from(input.files||[]);
   if(!files.length) return;
+  if(!currentUser){
+    toast('Connectez-vous pour uploader des fichiers', 'ti-user');
+    showScreen('s-auth');
+    return;
+  }
+  // Upload all files to Firebase Storage
   for(const file of files){
-    if(currentUser && file.size > 5*1024*1024){
-      await uploadFileToStorage(file, folderId);
-    } else {
-      await uploadSingleBase64(file, folderId);
-    }
+    await uploadFileToStorage(file, folderId);
   }
   input.value = '';
-}
-
-async function uploadSingleBase64(file, folderId){
-  const MAX = 10*1024*1024;
-  if(file.size > MAX){ toast(`${file.name} trop volumineux (max 10MB hors ligne)`, 'ti-alert-circle'); return; }
-  toast(`Chargement : ${file.name}…`, 'ti-loader');
-  const fileData = await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(file);});
-  const item = {
-    id:Date.now()+Math.random(), espace:curEspace==='global'?folder_espace_of(folderId):curEspace,
-    type:'doc', docType:'file', title:file.name,
-    fileName:file.name, fileSize:file.size, fileData,
-    storageUrl:'', storagePath:'',
-    url:'', folder:folderId, tags:[], notes:'', rating:0,
-    status:'lu', author:'', mediaType:'', mediaData:'', coverUrl:'',
-    pageCur:0, pageTotal:0, collection:'', quotes:[],
-    date:new Date().toISOString().split('T')[0]
-  };
-  DB.push(item); save(); updateSidebar(); renderFolderView(folderId); buildFolderTree();
-  toast(`${file.name} ajouté !`, 'ti-file-check');
 }
 
 // Helper: get espace of a folder
@@ -3521,21 +3512,20 @@ function switchToEspace(espId){
 // ===== FIREBASE STORAGE UPLOAD =====
 async function uploadFileToStorage(file, folderId){
   if(!currentUser){
-    // Fallback to base64 if not logged in
-    return uploadDocToFolder(folderId, {files:[file]});
-  }
-  const MAX_SIZE = 50 * 1024 * 1024; // 50MB with Storage
-  if(file.size > MAX_SIZE){
-    toast('Fichier trop volumineux (max 50MB)', 'ti-alert-circle');
+    toast('Connexion requise pour uploader', 'ti-user');
     return;
   }
-  // Show progress
   const progId = 'up-' + Date.now();
   showUploadProgress(progId, file.name, 0);
 
-  const path = `users/${currentUser.uid}/files/${Date.now()}_${file.name}`;
+  // Sanitize filename — remove special chars that break Storage paths
+  const safeName = file.name.replace(/[#\[\]\*\?]/g, '_');
+  const path = `users/${currentUser.uid}/files/${Date.now()}_${safeName}`;
   const ref = storage.ref(path);
-  const uploadTask = ref.put(file);
+
+  // Set correct metadata for proper serving
+  const meta = { contentType: file.type || 'application/octet-stream', contentDisposition: `inline; filename="${safeName}"` };
+  const uploadTask = ref.put(file, meta);
 
   return new Promise((resolve, reject)=>{
     uploadTask.on('state_changed',
@@ -3543,24 +3533,50 @@ async function uploadFileToStorage(file, folderId){
         const pct = Math.round(snap.bytesTransferred/snap.totalBytes*100);
         updateUploadProgress(progId, pct);
       },
-      err=>{ hideUploadProgress(progId); toast('Erreur upload: '+err.message,'ti-alert-circle'); reject(err); },
+      err=>{
+        hideUploadProgress(progId);
+        const errMsgs = {
+          'storage/unauthorized': 'Accès refusé — vérifiez les règles Firebase Storage',
+          'storage/canceled': 'Upload annulé',
+          'storage/quota-exceeded': 'Quota Firebase dépassé',
+          'storage/retry-limit-exceeded': 'Connexion trop lente, réessayez',
+        };
+        toast(errMsgs[err.code]||'Erreur upload : '+err.message, 'ti-alert-circle');
+        reject(err);
+      },
       async ()=>{
         const url = await uploadTask.snapshot.ref.getDownloadURL();
         hideUploadProgress(progId);
-        // Create doc item with storage URL instead of base64
+        // Determine docType from mime/extension
+        const ext = safeName.split('.').pop().toLowerCase();
+        const mime = file.type||'';
+        let docType = 'storage';
+        if(ext==='html'||ext==='htm') docType='html';
+        else if(ext==='pdf'||mime==='application/pdf') docType='pdf';
+        else if(mime.startsWith('image/')) docType='image';
+        else if(mime.startsWith('video/')) docType='video';
+        else if(mime.startsWith('audio/')) docType='audio';
+
         const item = {
-          id: Date.now(), espace: folder_espace_of(folderId),
-          type:'doc', docType:'storage', title: file.name,
-          fileName: file.name, fileSize: file.size,
-          fileData: '', storageUrl: url, storagePath: path,
-          url:'', folder: folderId, tags:[], notes:'', rating:0,
+          id: Date.now(),
+          espace: folder_espace_of(folderId),
+          type:'doc', docType,
+          title: file.name,
+          fileName: safeName,
+          fileSize: file.size,
+          fileData: '',
+          storageUrl: url,
+          storagePath: path,
+          mimeType: file.type||'',
+          url:'', folder: folderId,
+          tags:[], notes:'', rating:0,
           status:'lu', author:'', mediaType:'', mediaData:'', coverUrl:'',
           pageCur:0, pageTotal:0, collection:'', quotes:[],
           date: new Date().toISOString().split('T')[0]
         };
         DB.push(item); save(); updateSidebar();
         renderFolderView(folderId); buildFolderTree();
-        toast('Fichier uploadé ✓', 'ti-cloud-check');
+        toast(`✓ ${file.name} uploadé`, 'ti-cloud-check');
         resolve(item);
       }
     );
