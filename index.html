@@ -389,13 +389,13 @@ select option{background:var(--bg);color:var(--text);}
 /* viewer is now #viewer-overlay */
 #viewer-overlay{display:none !important;}
 #viewer-overlay.open{display:flex !important;}
-.viewer-topbar{height:48px;background:var(--bg);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;padding:0 14px;flex-shrink:0;box-shadow:var(--shadow);}
+.viewer-topbar{height:52px;background:var(--bg);border-bottom:2px solid var(--accent);display:flex;align-items:center;gap:10px;padding:0 16px;flex-shrink:0;box-shadow:var(--shadow2);}
 .viewer-back{display:flex;align-items:center;gap:6px;background:transparent;border:none;cursor:pointer;color:var(--text2);font-size:13px;font-family:'Jost',sans-serif;padding:6px 10px;border-radius:7px;transition:.12s;}
 .viewer-back:hover{background:var(--bg2);color:var(--text);}
 .viewer-title{font-family:'Playfair Display',serif;font-size:15px;font-weight:600;color:var(--text);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .viewer-type{font-size:11px;color:var(--text3);background:var(--bg2);border:1px solid var(--border);padding:2px 8px;border-radius:99px;flex-shrink:0;}
 .viewer-actions{display:flex;gap:4px;flex-shrink:0;}
-.viewer-body{flex:1;overflow:hidden;position:relative;}
+.viewer-body{flex:1;overflow:hidden;position:relative;background:var(--bg);}
 
 /* PDF viewer */
 .pdf-viewer{width:100%;height:100%;border:none;background:#525659;}
@@ -432,7 +432,7 @@ select option{background:var(--bg);color:var(--text);}
 .te-save-indicator i{font-size:13px;}
 
 /* Unsupported */
-.unsupported-wrap{width:100%;height:100%;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;color:var(--text3);padding:40px;}
+.unsupported-wrap{width:100%;height:100%;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;color:var(--text);padding:40px;background:var(--bg);}
 .unsupported-wrap i{font-size:48px;color:var(--accent);}
 .unsupported-wrap h3{font-family:'Playfair Display',serif;font-size:18px;color:var(--text);}
 .unsupported-wrap p{font-size:13px;text-align:center;max-width:340px;}
@@ -1299,19 +1299,31 @@ function openViewer(itemOrId){
         actions.appendChild(tabBtn);
       }
       else if(item.storageUrl){
-        // Cloud Storage file — CORS blocks iframe from GitHub Pages
-        // Show preview card with direct open button instead
-        body.innerHTML = `<div class="unsupported-wrap">
-          <i class="ti ti-code" style="font-size:64px;color:var(--accent)"></i>
-          <h3 style="margin-top:12px">${item.title||item.fileName}</h3>
-          <p style="margin:8px 0 20px;color:var(--text3)">
-            Les fichiers HTML hébergés dans le cloud s'ouvrent dans un nouvel onglet<br>
-            <small>(restriction de sécurité navigateur)</small>
-          </p>
-          <a href="${item.storageUrl}" target="_blank" class="add-btn" style="text-decoration:none;font-size:14px;padding:10px 24px">
-            <i class="ti ti-external-link"></i>&nbsp;Ouvrir le fichier
-          </a>
+        // Cloud file — open directly in new tab AND show inline preview card
+        // Try to fetch content for inline display
+        body.innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;background:var(--bg);gap:16px;padding:40px;text-align:center;">
+          <div style="width:80px;height:80px;background:var(--accent3);border-radius:16px;display:flex;align-items:center;justify-content:center;border:2px solid var(--accent)">
+            <i class="ti ti-code" style="font-size:36px;color:var(--accent)"></i>
+          </div>
+          <div>
+            <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:600;color:var(--text);margin-bottom:8px">${item.title||item.fileName}</div>
+            <div style="font-size:13px;color:var(--text3);margin-bottom:4px">Fichier HTML · ${item.fileSize?formatSize(item.fileSize):'Cloud Storage'}</div>
+            <div style="font-size:12px;color:var(--text3)">Depuis un autre appareil · ☁️ Synchronisé</div>
+          </div>
+          <div style="display:flex;gap:10px;margin-top:8px">
+            <a href="${item.storageUrl}" target="_blank"
+              style="background:var(--accent);color:var(--bg);text-decoration:none;border-radius:9px;padding:10px 22px;font-size:13px;display:flex;align-items:center;gap:7px;font-family:'Jost',sans-serif;font-weight:500">
+              <i class="ti ti-external-link"></i> Ouvrir dans un onglet
+            </a>
+            <button onclick="fetchAndShowHtml('${item.storageUrl}', '${(item.title||item.fileName).replace(/'/g,'\'')}')"
+              style="background:var(--bg2);color:var(--text);border:1px solid var(--border);border-radius:9px;padding:10px 22px;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:7px;font-family:'Jost',sans-serif">
+              <i class="ti ti-eye"></i> Afficher ici
+            </button>
+          </div>
+          <div id="fetch-html-result" style="width:100%;margin-top:8px"></div>
         </div>`;
+        // Auto-open in new tab
+        window.open(item.storageUrl, '_blank');
       }
       else {
         body.innerHTML = `<div class="unsupported-wrap">
@@ -3619,6 +3631,41 @@ async function uploadDocToFolder(folderId, input){
   }
   // Small files or offline: use base64
   await _origUploadDocToFolder(folderId, input);
+}
+
+
+// ===== FETCH AND SHOW HTML FROM STORAGE =====
+async function fetchAndShowHtml(url, title){
+  const resultEl = document.getElementById('fetch-html-result');
+  if(resultEl) resultEl.innerHTML = '<div style="font-size:12px;color:var(--text3)"><i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i> Chargement…</div>';
+  try{
+    const resp = await fetch(url);
+    if(!resp.ok) throw new Error('HTTP '+resp.status);
+    const rawBuffer = await resp.arrayBuffer();
+    // Detect encoding
+    const uint8 = new Uint8Array(rawBuffer);
+    let text = new TextDecoder('utf-8').decode(uint8);
+    const charsetMatch = text.match(/<meta[^>]*charset=['"\s]*([\w-]+)/i);
+    const charset = charsetMatch ? charsetMatch[1].toLowerCase().replace('-','') : 'utf8';
+    if(charset !== 'utf8' && charset !== 'utf-8'){
+      text = new TextDecoder(charsetMatch[1]).decode(uint8);
+    }
+    // Create blob and open iframe inline
+    const blob = new Blob([text],{type:'text/html;charset=utf-8'});
+    const blobUrl = URL.createObjectURL(blob);
+    const body = document.getElementById('viewer-body');
+    if(body){
+      const iframe = document.createElement('iframe');
+      iframe.className = 'html-viewer';
+      iframe.src = blobUrl;
+      iframe._blobUrl = blobUrl;
+      body.innerHTML = '';
+      body.appendChild(iframe);
+    }
+  }catch(e){
+    if(resultEl) resultEl.innerHTML = `<div style="font-size:12px;color:#e05555">Erreur : ${e.message}.<br>
+      <a href="${url}" target="_blank" style="color:var(--accent)">Ouvrir dans un onglet</a> à la place.</div>`;
+  }
 }
 
 // openViewer handles storageUrl natively
