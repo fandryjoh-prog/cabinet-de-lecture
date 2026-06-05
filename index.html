@@ -3637,36 +3637,88 @@ async function uploadDocToFolder(folderId, input){
 // ===== FETCH AND SHOW HTML FROM STORAGE =====
 async function fetchAndShowHtml(url, title){
   const resultEl = document.getElementById('fetch-html-result');
-  if(resultEl) resultEl.innerHTML = '<div style="font-size:12px;color:var(--text3)"><i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i> Chargement…</div>';
+  const body2 = document.getElementById('viewer-body');
+  if(resultEl) resultEl.innerHTML = '<div style="font-size:12px;color:var(--text3);margin-top:8px"><i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i> Chargement du fichier…</div>';
   try{
-    const resp = await fetch(url);
+    const resp = await fetch(url, {mode:'cors'});
     if(!resp.ok) throw new Error('HTTP '+resp.status);
     const rawBuffer = await resp.arrayBuffer();
-    // Detect encoding
     const uint8 = new Uint8Array(rawBuffer);
-    let text = new TextDecoder('utf-8').decode(uint8);
-    const charsetMatch = text.match(/<meta[^>]*charset=['"\s]*([\w-]+)/i);
-    const charset = charsetMatch ? charsetMatch[1].toLowerCase().replace('-','') : 'utf8';
-    if(charset !== 'utf8' && charset !== 'utf-8'){
-      text = new TextDecoder(charsetMatch[1]).decode(uint8);
-    }
-    // Create blob and open iframe inline
-    const blob = new Blob([text],{type:'text/html;charset=utf-8'});
+
+    // First decode as latin-1 to check charset meta
+    let probe = new TextDecoder('latin1').decode(uint8);
+    const charsetMatch = probe.match(/<meta[^>]*charset=['"\s]*([\w-]+)/i);
+    const declaredCharset = charsetMatch ? charsetMatch[1] : 'utf-8';
+
+    // Decode with correct charset
+    let text;
+    try{ text = new TextDecoder(declaredCharset).decode(uint8); }
+    catch(e){ text = new TextDecoder('utf-8').decode(uint8); }
+
+    // Prepare: fix fonts, charset, CSP, base URL
+    const prepared = prepareHtmlForDisplay(text, url);
+
+    // Create blob and display in iframe
+    const blob = new Blob([prepared], {type:'text/html;charset=utf-8'});
     const blobUrl = URL.createObjectURL(blob);
-    const body = document.getElementById('viewer-body');
-    if(body){
+
+    if(body2){
       const iframe = document.createElement('iframe');
       iframe.className = 'html-viewer';
+      iframe.style.cssText = 'width:100%;height:100%;border:none;';
       iframe.src = blobUrl;
       iframe._blobUrl = blobUrl;
-      body.innerHTML = '';
-      body.appendChild(iframe);
+      body2.innerHTML = '';
+      body2.appendChild(iframe);
     }
   }catch(e){
-    if(resultEl) resultEl.innerHTML = `<div style="font-size:12px;color:#e05555">Erreur : ${e.message}.<br>
-      <a href="${url}" target="_blank" style="color:var(--accent)">Ouvrir dans un onglet</a> à la place.</div>`;
+    const msg = e.message.includes('CORS')||e.message.includes('fetch')
+      ? 'Le fichier doit être ouvert dans un onglet (restriction CORS).'
+      : 'Erreur : '+e.message;
+    if(resultEl) resultEl.innerHTML = `<div style="font-size:12px;color:#e05555;margin-top:8px">${msg}<br>
+      <a href="${url}" target="_blank" style="color:var(--accent);text-decoration:underline">Ouvrir dans un onglet</a></div>`;
   }
 }
+
+
+// ===== HTML CONTENT FIXER — polices, encodage, CORS =====
+function prepareHtmlForDisplay(rawText, baseUrl){
+  let text = rawText;
+
+  // 1. Detect and fix charset
+  const charsetMatch = text.match(/<meta[^>]*charset=['"\s]*([\w-]+)/i);
+  const charset = charsetMatch ? charsetMatch[1].toLowerCase().replace(/-/g,'') : 'utf8';
+
+  // 2. Remove any CSP meta tags that block external resources
+  text = text.replace(/<meta[^>]*http-equiv=['"\s]*content-security-policy[^>]*>/gi, '');
+
+  // 3. Ensure UTF-8 charset declaration
+  if(charsetMatch){
+    text = text.replace(/<meta[^>]*charset=[^>]+>/i, '<meta charset="UTF-8">');
+  } else {
+    text = text.replace(/(<head[^>]*>)/i, '$1<meta charset="UTF-8">');
+  }
+
+  // 4. Add Google Fonts preconnect if Google Fonts are used
+  if(text.includes('fonts.googleapis.com') || text.includes('fonts.gstatic.com')){
+    const preconnect = `
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>`;
+    text = text.replace(/(<head[^>]*>)/i, '$1' + preconnect);
+  }
+
+  // 5. Add base tag for relative URLs (use Storage URL as base if available)
+  if(!text.includes('<base ')){
+    const base = baseUrl ? `<base href="${baseUrl}">` : '<base target="_blank">';
+    text = text.replace(/(<head[^>]*>)/i, '$1' + base);
+  }
+
+  // 6. Fix protocol-relative URLs //fonts.googleapis.com → https://fonts.googleapis.com
+  text = text.replace(/(['"])\/\/(fonts\.googleapis\.com|fonts\.gstatic\.com|cdnjs\.cloudflare\.com|cdn\.jsdelivr\.net)/g, '$1https://$2');
+
+  return text;
+}
+
 
 // openViewer handles storageUrl natively
 
