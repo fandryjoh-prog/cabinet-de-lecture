@@ -550,7 +550,6 @@ mark{background:var(--accent3);color:var(--accent);border-radius:2px;padding:0 1
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
 </head>
 <body class="t-perso">
 
@@ -1267,36 +1266,51 @@ function openViewer(itemOrId){
     }
     else if(isHtml){
       document.getElementById('viewer-type').textContent = 'HTML';
-      // Get the best URL to open
-      const htmlUrl = item.storageUrl || (item.fileData && item.fileData.startsWith('data:') ? (() => {
+      let openUrl = null;
+
+      if(item.storageUrl){
+        // Firebase Storage URL — open directly, works in any browser tab
+        openUrl = item.storageUrl;
+      } else if(item.fileData && item.fileData.length > 0){
+        // Local base64 file — create blob URL
         try{
-          const b64 = item.fileData.split(',')[1];
-          const raw = atob(b64);
-          const bytes = new Uint8Array(raw.split('').map(c=>c.charCodeAt(0)));
-          const blob = new Blob([bytes],{type:'text/html'});
-          return URL.createObjectURL(blob);
-        }catch(e){ return null; }
-      })() : null);
-      if(htmlUrl){
-        // Open in new tab — always reliable
-        window.open(htmlUrl, '_blank');
-        body.innerHTML = `<div class="unsupported-wrap">
-          <div style="width:72px;height:72px;background:var(--accent3);border-radius:14px;display:flex;align-items:center;justify-content:center;border:2px solid var(--accent);margin-bottom:8px">
-            <i class="ti ti-code" style="font-size:32px;color:var(--accent)"></i>
-          </div>
-          <h3 style="font-family:'Playfair Display',serif;font-size:18px">${item.title||item.fileName}</h3>
-          <p style="color:var(--text3);font-size:13px;margin:6px 0 4px">Le fichier s'est ouvert dans un nouvel onglet.</p>
-          <p style="color:var(--text3);font-size:12px;margin-bottom:18px">${item.fileSize?formatSize(item.fileSize):''}${item.storageUrl?' · ☁️ Cloud':''}</p>
-          <a href="${htmlUrl}" target="_blank"
-            style="background:var(--accent);color:var(--bg);text-decoration:none;border-radius:9px;padding:10px 22px;font-size:13px;display:inline-flex;align-items:center;gap:8px;font-family:'Jost',sans-serif;font-weight:500;box-shadow:var(--shadow2)">
-            <i class="ti ti-external-link"></i> Rouvrir dans un onglet
-          </a>
-        </div>`;
+          const b64 = item.fileData.split(',')[1] || item.fileData;
+          // Use fetch to decode properly regardless of charset
+          const byteChars = atob(b64);
+          const byteArr = new Uint8Array(byteChars.length);
+          for(let i=0;i<byteChars.length;i++) byteArr[i]=byteChars.charCodeAt(i);
+          const blob = new Blob([byteArr],{type:'text/html'});
+          openUrl = URL.createObjectURL(blob);
+        }catch(e){ openUrl = null; }
+      } else if(item.url){
+        openUrl = item.url;
+      }
+
+      if(openUrl){
+        // Always open in new tab — most reliable across all browsers and CORS
+        const win = window.open(openUrl, '_blank');
+        // Show friendly info card in viewer
+        body.innerHTML = `
+          <div class="unsupported-wrap">
+            <div style="width:80px;height:80px;background:var(--accent3);border-radius:16px;display:flex;align-items:center;justify-content:center;border:2px solid var(--accent)">
+              <i class="ti ti-code" style="font-size:36px;color:var(--accent)"></i>
+            </div>
+            <h3 style="font-family:'Playfair Display',serif;font-size:20px;margin-top:4px">${item.title||item.fileName||'Fichier HTML'}</h3>
+            <p style="color:var(--text3);font-size:13px;margin:4px 0">
+              ${item.fileSize?'📦 '+formatSize(item.fileSize):''}
+              ${item.storageUrl?' &nbsp;·&nbsp; ☁️ Cloud':''}
+            </p>
+            ${!win||win.closed?'<p style="color:#e05555;font-size:12px;margin-top:4px">⚠️ Le popup a été bloqué — cliquez sur le bouton ci-dessous</p>':'<p style="color:var(--accent);font-size:13px;margin-top:4px">✓ Ouvert dans un nouvel onglet</p>'}
+            <a href="${openUrl}" target="_blank"
+              style="margin-top:14px;background:var(--accent);color:var(--bg);text-decoration:none;border-radius:9px;padding:12px 28px;font-size:14px;display:inline-flex;align-items:center;gap:8px;font-family:'Jost',sans-serif;font-weight:500;box-shadow:var(--shadow2)">
+              <i class="ti ti-external-link"></i> Ouvrir le fichier
+            </a>
+          </div>`;
       } else {
         body.innerHTML = `<div class="unsupported-wrap">
           <i class="ti ti-alert-circle" style="font-size:52px;color:var(--text3)"></i>
-          <h3>${item.title||item.fileName}</h3>
-          <p style="color:var(--text3)">Source du fichier introuvable.</p>
+          <h3>${item.title||item.fileName||'Fichier HTML'}</h3>
+          <p style="color:var(--text3)">Impossible de trouver la source du fichier.</p>
         </div>`;
       }
     }
@@ -2601,8 +2615,8 @@ function renderFolderView(folderId){
 
   // Upload bar
   const upBar = `<div class="folder-upload-bar">
-    <label class="fub-btn" style="cursor:pointer;background:var(--accent);color:var(--bg);border-color:var(--accent)">
-      <i class="ti ti-upload"></i>Uploader
+    <label class="fub-btn" style="cursor:pointer;background:var(--accent);color:var(--bg);border-color:var(--accent)" title="Max 900KB par fichier pour sync cloud">
+      <i class="ti ti-upload"></i>Uploader <span style="font-size:10px;opacity:.7">(max 900KB/sync)</span>
       <input type="file" style="display:none" accept="*/*" multiple onchange="handleFolderUpload('${folderId}',this)"/>
     </label>
     <button class="fub-btn" onclick="addLinkToFolder('${folderId}')"><i class="ti ti-link"></i>Lien URL</button>
@@ -2643,8 +2657,8 @@ function renderFolderView(folderId){
           <div class="doc-info">
             <div class="doc-name">${d.title||d.fileName}</div>
             <div class="doc-meta">
-              ${d.docType==='url'?d.url : d.storageUrl?'☁️ Cloud Storage' : d.docType==='html'?'Document HTML' : d.fileName||'Fichier'}
-              ${d.fileSize?'· '+formatSize(d.fileSize):''}
+              ${d.docType==='url'?d.url : d.localOnly?'⚠️ Local uniquement' : d.docType==='html'?'📄 HTML' : d.fileName||'Fichier'}
+              ${d.fileSize?' · '+formatSize(d.fileSize):''}
             </div>
           </div>
           <div class="doc-actions">
@@ -2711,12 +2725,7 @@ async function deleteSelectedDocs(){
   if(!ids.length) return;
   if(!confirm(`Supprimer ${ids.length} fichier${ids.length>1?'s':''} ?`)) return;
   // Delete from Storage if cloud files
-  for(const id of ids){
-    const item = DB.find(i=>i.id===id);
-    if(item && item.storagePath && currentUser){
-      try{ await storage.ref(item.storagePath).delete(); }catch(e){ console.warn('Storage delete failed:', e); }
-    }
-  }
+  // Just remove from DB (no Firebase Storage to clean up)
   DB = DB.filter(i=>!ids.includes(i.id));
   selectedDocs.clear();
   selectionMode = false;
@@ -2741,20 +2750,73 @@ function moveSelectedDocs(){
   toast(`Déplacé vers "${targetFolder.name}"`, 'ti-folder-symlink');
 }
 
-// ===== MULTI-FILE UPLOAD HANDLER =====
+// ===== MULTI-FILE UPLOAD HANDLER — Firestore base64 =====
+const MAX_FILE_SIZE = 900 * 1024; // 900KB Firestore doc limit
+
 async function handleFolderUpload(folderId, input){
   const files = Array.from(input.files||[]);
   if(!files.length) return;
-  if(!currentUser){
-    toast('Connectez-vous pour uploader des fichiers', 'ti-user');
-    showScreen('s-auth');
-    return;
-  }
-  // Upload all files to Firebase Storage
   for(const file of files){
-    await uploadFileToStorage(file, folderId);
+    if(file.size > MAX_FILE_SIZE){
+      // Show warning but still allow — will be stored locally only
+      const proceed = confirm(`"${file.name}" fait ${formatSize(file.size)} — dépasse la limite sync cloud (900KB).\nStocké localement uniquement. Continuer ?`);
+      if(!proceed) continue;
+    }
+    await uploadFileLocal(file, folderId);
   }
-  input.value = '';
+  input.value='';
+}
+
+async function uploadFileLocal(file, folderId){
+  const progId = 'up-'+Date.now();
+  showUploadProgress(progId, file.name, 0);
+  try{
+    const fileData = await new Promise((res,rej)=>{
+      const r = new FileReader();
+      r.onload = ()=>res(r.result);
+      r.onerror = rej;
+      r.onprogress = e=>{ if(e.lengthComputable) updateUploadProgress(progId, Math.round(e.loaded/e.total*90)); };
+      r.readAsDataURL(file);
+    });
+    updateUploadProgress(progId, 95);
+    const ext = file.name.split('.').pop().toLowerCase();
+    const mime = file.type||'';
+    let docType = 'file';
+    if(ext==='html'||ext==='htm') docType='html';
+    else if(ext==='pdf'||mime==='application/pdf') docType='pdf';
+    else if(mime.startsWith('image/')) docType='image';
+    else if(mime.startsWith('video/')) docType='video';
+    else if(mime.startsWith('audio/')) docType='audio';
+    const item = {
+      id: Date.now(),
+      espace: folder_espace_of(folderId),
+      type:'doc', docType,
+      title: file.name,
+      fileName: file.name,
+      fileSize: file.size,
+      fileData: file.size <= MAX_FILE_SIZE ? fileData : '', // only store if small enough
+      localOnly: file.size > MAX_FILE_SIZE,
+      storageUrl: '',
+      storagePath: '',
+      mimeType: file.type||'',
+      url:'', folder: folderId,
+      tags:[], notes:'', rating:0,
+      status:'lu', author:'', mediaType:'', mediaData:'', coverUrl:'',
+      pageCur:0, pageTotal:0, collection:'', quotes:[],
+      date: new Date().toISOString().split('T')[0]
+    };
+    DB.push(item);
+    hideUploadProgress(progId);
+    save(); updateSidebar(); renderFolderView(folderId); buildFolderTree();
+    if(item.localOnly){
+      toast(`⚠️ ${file.name} — local uniquement (trop grand pour le cloud)`, 'ti-alert-circle');
+    } else {
+      toast(`✓ ${file.name} ajouté`, 'ti-file-check');
+    }
+  } catch(e){
+    hideUploadProgress(progId);
+    toast('Erreur : '+e.message, 'ti-alert-circle');
+  }
 }
 
 // Helper: get espace of a folder
@@ -2832,11 +2894,6 @@ function addHtmlToFolder(folderId){
 async function deleteDoc(id){
   if(!confirm('Supprimer ce document ?')) return;
   const item = DB.find(i=>i.id===id);
-  // Delete from Firebase Storage if cloud file
-  if(item && item.storagePath && currentUser){
-    try{ await storage.ref(item.storagePath).delete(); }
-    catch(e){ console.warn('Storage delete error:', e); }
-  }
   DB = DB.filter(i=>i.id!==id);
   save(); updateSidebar();
   if(item&&item.folder) renderFolderView(item.folder);
@@ -2959,7 +3016,6 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
-const storage = firebase.storage();
 
 let currentUser = null;
 let conflictCloudData = null;
@@ -3259,15 +3315,16 @@ async function pushToCloud() {
   try {
     SETTINGS.lastSync = Date.now();
     // Strip large base64 file data before sync (too large for Firestore 1MB doc limit)
+    // Strip files > 900KB from cloud sync (Firestore 1MB doc limit)
     const dbToSync = DB.map(item => {
       const copy = {...item};
-      if(copy.fileData && copy.fileData.length > 50000) {
+      if(copy.fileData && copy.fileData.length > 900*1024) {
         copy.fileData = '__LOCAL_ONLY__';
-        copy.fileDataLocal = true;
+        copy.localOnly = true;
       }
-      if(copy.mediaData && copy.mediaData.length > 50000) {
+      if(copy.mediaData && copy.mediaData.length > 900*1024) {
         copy.mediaData = '__LOCAL_ONLY__';
-        copy.mediaDataLocal = true;
+        copy.localOnly = true;
       }
       return copy;
     });
@@ -3489,78 +3546,7 @@ function switchToEspace(espId){
 }
 
 // ===== FIREBASE STORAGE UPLOAD =====
-async function uploadFileToStorage(file, folderId){
-  if(!currentUser){
-    toast('Connexion requise pour uploader', 'ti-user');
-    return;
-  }
-  const progId = 'up-' + Date.now();
-  showUploadProgress(progId, file.name, 0);
-
-  // Sanitize filename — remove special chars that break Storage paths
-  const safeName = file.name.replace(/[#\[\]\*\?]/g, '_');
-  const path = `users/${currentUser.uid}/files/${Date.now()}_${safeName}`;
-  const ref = storage.ref(path);
-
-  // Set correct metadata for proper serving
-  const meta = { contentType: file.type || 'application/octet-stream', contentDisposition: `inline; filename="${safeName}"` };
-  const uploadTask = ref.put(file, meta);
-
-  return new Promise((resolve, reject)=>{
-    uploadTask.on('state_changed',
-      snap=>{
-        const pct = Math.round(snap.bytesTransferred/snap.totalBytes*100);
-        updateUploadProgress(progId, pct);
-      },
-      err=>{
-        hideUploadProgress(progId);
-        const errMsgs = {
-          'storage/unauthorized': 'Accès refusé — vérifiez les règles Firebase Storage',
-          'storage/canceled': 'Upload annulé',
-          'storage/quota-exceeded': 'Quota Firebase dépassé',
-          'storage/retry-limit-exceeded': 'Connexion trop lente, réessayez',
-        };
-        toast(errMsgs[err.code]||'Erreur upload : '+err.message, 'ti-alert-circle');
-        reject(err);
-      },
-      async ()=>{
-        const url = await uploadTask.snapshot.ref.getDownloadURL();
-        hideUploadProgress(progId);
-        // Determine docType from mime/extension
-        const ext = safeName.split('.').pop().toLowerCase();
-        const mime = file.type||'';
-        let docType = 'storage';
-        if(ext==='html'||ext==='htm') docType='html';
-        else if(ext==='pdf'||mime==='application/pdf') docType='pdf';
-        else if(mime.startsWith('image/')) docType='image';
-        else if(mime.startsWith('video/')) docType='video';
-        else if(mime.startsWith('audio/')) docType='audio';
-
-        const item = {
-          id: Date.now(),
-          espace: folder_espace_of(folderId),
-          type:'doc', docType,
-          title: file.name,
-          fileName: safeName,
-          fileSize: file.size,
-          fileData: '',
-          storageUrl: url,
-          storagePath: path,
-          mimeType: file.type||'',
-          url:'', folder: folderId,
-          tags:[], notes:'', rating:0,
-          status:'lu', author:'', mediaType:'', mediaData:'', coverUrl:'',
-          pageCur:0, pageTotal:0, collection:'', quotes:[],
-          date: new Date().toISOString().split('T')[0]
-        };
-        DB.push(item); save(); updateSidebar();
-        renderFolderView(folderId); buildFolderTree();
-        toast(`✓ ${file.name} uploadé`, 'ti-cloud-check');
-        resolve(item);
-      }
-    );
-  });
-}
+// Firebase Storage removed — using Firestore base64
 
 function showUploadProgress(id, name, pct){
   let wrap = document.getElementById('up-progress-wrap');
