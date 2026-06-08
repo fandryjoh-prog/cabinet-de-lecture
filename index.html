@@ -1266,52 +1266,110 @@ function openViewer(itemOrId){
     }
     else if(isHtml){
       document.getElementById('viewer-type').textContent = 'HTML';
-      let openUrl = null;
 
-      if(item.storageUrl){
-        // Firebase Storage URL — open directly, works in any browser tab
-        openUrl = item.storageUrl;
-      } else if(item.fileData && item.fileData.length > 0){
-        // Local base64 file — create blob URL
-        try{
-          const b64 = item.fileData.split(',')[1] || item.fileData;
-          // Use fetch to decode properly regardless of charset
+      async function buildAndOpenHtml(rawBase64OrText, isBase64){
+        let rawBytes, textContent;
+        if(isBase64){
+          const b64 = rawBase64OrText.split(',')[1] || rawBase64OrText;
           const byteChars = atob(b64);
-          const byteArr = new Uint8Array(byteChars.length);
-          for(let i=0;i<byteChars.length;i++) byteArr[i]=byteChars.charCodeAt(i);
-          const blob = new Blob([byteArr],{type:'text/html'});
-          openUrl = URL.createObjectURL(blob);
-        }catch(e){ openUrl = null; }
-      } else if(item.url){
-        openUrl = item.url;
+          rawBytes = new Uint8Array(byteChars.length);
+          for(let i=0;i<byteChars.length;i++) rawBytes[i]=byteChars.charCodeAt(i);
+          // Detect charset
+          const probe = new TextDecoder('latin1').decode(rawBytes);
+          const cm = probe.match(/<meta[^>]*charset=['"\s]*([\w-]+)/i);
+          const cs = cm ? cm[1] : 'utf-8';
+          try{ textContent = new TextDecoder(cs).decode(rawBytes); }
+          catch(e){ textContent = new TextDecoder('utf-8').decode(rawBytes); }
+        } else {
+          textContent = rawBase64OrText;
+        }
+
+        // Fix charset declaration to UTF-8
+        textContent = textContent.replace(/<meta[^>]*charset=[^>]+>/i,'<meta charset="UTF-8">');
+        if(!textContent.match(/<meta[^>]*charset/i)){
+          textContent = textContent.replace(/(<head[^>]*>)/i,'$1<meta charset="UTF-8">');
+        }
+
+        // Remove CSP tags that block fonts
+        textContent = textContent.replace(/<meta[^>]*http-equiv=['"]*content-security-policy[^>]*>/gi,'');
+
+        // Find all Google Fonts URLs in the HTML
+        const fontUrls = [];
+        const fontRegex = /https?:\/\/fonts\.googleapis\.com\/css[^"')\s]*/g;
+        let fm;
+        while((fm = fontRegex.exec(textContent)) !== null){
+          if(!fontUrls.includes(fm[0])) fontUrls.push(fm[0]);
+        }
+
+        // Fetch and inline each Google Font CSS + the actual font files
+        for(const fontUrl of fontUrls){
+          try{
+            const cssResp = await fetch(fontUrl, {headers:{'User-Agent':'Mozilla/5.0'}});
+            if(!cssResp.ok) continue;
+            let cssText = await cssResp.text();
+            // Fetch each font file URL in the CSS and convert to base64
+            const woffUrls = [];
+            const woffRegex = /url\(([^)]+)\)/g;
+            let wm;
+            while((wm = woffRegex.exec(cssText)) !== null){
+              const wu = wm[1].replace(/['"]/g,'');
+              if(wu.includes('fonts.gstatic.com') && !woffUrls.includes(wu)) woffUrls.push(wu);
+            }
+            for(const wu of woffUrls){
+              try{
+                const fr = await fetch(wu);
+                if(!fr.ok) continue;
+                const ab = await fr.arrayBuffer();
+                const b64font = btoa(String.fromCharCode(...new Uint8Array(ab)));
+                const mime = wu.includes('.woff2') ? 'font/woff2' : 'font/woff';
+                cssText = cssText.replace(new RegExp(wu.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'g'),
+                  `data:${mime};base64,${b64font}`);
+              }catch(e){}
+            }
+            // Replace the Google Fonts link tag with inline style
+            textContent = textContent.replace(
+              new RegExp(`<link[^>]*href=['"]*${fontUrl.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}[^>]*>`, 'i'),
+              `<style>${cssText}</style>`
+            );
+          }catch(e){}
+        }
+
+        // Fix protocol-relative URLs
+        textContent = textContent.replace(/(['"])\/\/(fonts\.googleapis\.com|fonts\.gstatic\.com|cdnjs\.cloudflare\.com|cdn\.jsdelivr\.net)/g,'$1https://$2');
+
+        // Create blob and open
+        const blob = new Blob([textContent],{type:'text/html;charset=utf-8'});
+        const blobUrl = URL.createObjectURL(blob);
+        window.open(blobUrl, '_blank');
+        return blobUrl;
       }
 
-      if(openUrl){
-        // Always open in new tab — most reliable across all browsers and CORS
-        const win = window.open(openUrl, '_blank');
-        // Show friendly info card in viewer
-        body.innerHTML = `
-          <div class="unsupported-wrap">
-            <div style="width:80px;height:80px;background:var(--accent3);border-radius:16px;display:flex;align-items:center;justify-content:center;border:2px solid var(--accent)">
-              <i class="ti ti-code" style="font-size:36px;color:var(--accent)"></i>
-            </div>
-            <h3 style="font-family:'Playfair Display',serif;font-size:20px;margin-top:4px">${item.title||item.fileName||'Fichier HTML'}</h3>
-            <p style="color:var(--text3);font-size:13px;margin:4px 0">
-              ${item.fileSize?'📦 '+formatSize(item.fileSize):''}
-              ${item.storageUrl?' &nbsp;·&nbsp; ☁️ Cloud':''}
-            </p>
-            ${!win||win.closed?'<p style="color:#e05555;font-size:12px;margin-top:4px">⚠️ Le popup a été bloqué — cliquez sur le bouton ci-dessous</p>':'<p style="color:var(--accent);font-size:13px;margin-top:4px">✓ Ouvert dans un nouvel onglet</p>'}
-            <a href="${openUrl}" target="_blank"
-              style="margin-top:14px;background:var(--accent);color:var(--bg);text-decoration:none;border-radius:9px;padding:12px 28px;font-size:14px;display:inline-flex;align-items:center;gap:8px;font-family:'Jost',sans-serif;font-weight:500;box-shadow:var(--shadow2)">
-              <i class="ti ti-external-link"></i> Ouvrir le fichier
-            </a>
-          </div>`;
+      // Show loading card while fonts are fetched
+      body.innerHTML = `<div class="unsupported-wrap" id="html-open-card">
+        <div style="width:80px;height:80px;background:var(--accent3);border-radius:16px;display:flex;align-items:center;justify-content:center;border:2px solid var(--accent)">
+          <i class="ti ti-code" style="font-size:36px;color:var(--accent)"></i>
+        </div>
+        <h3 style="font-family:'Playfair Display',serif;font-size:20px;margin-top:4px">${item.title||item.fileName||'Fichier HTML'}</h3>
+        <p style="color:var(--text3);font-size:12px;margin:4px 0">${item.fileSize?formatSize(item.fileSize):''}</p>
+        <p style="color:var(--accent);font-size:13px;margin-top:8px" id="html-status"><i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i> Préparation des polices…</p>
+        <div id="html-open-btn" style="margin-top:14px"></div>
+      </div>`;
+
+      if(item.fileData && item.fileData.length > 0){
+        buildAndOpenHtml(item.fileData, true).then(blobUrl=>{
+          const s = document.getElementById('html-status');
+          const b = document.getElementById('html-open-btn');
+          if(s) s.innerHTML = '✓ Ouvert dans un nouvel onglet';
+          if(b) b.innerHTML = `<a href="${blobUrl}" target="_blank"
+            style="background:var(--accent);color:var(--bg);text-decoration:none;border-radius:9px;padding:10px 22px;font-size:13px;display:inline-flex;align-items:center;gap:8px;font-family:'Jost',sans-serif;font-weight:500">
+            <i class="ti ti-external-link"></i> Rouvrir</a>`;
+        }).catch(e=>{
+          const s = document.getElementById('html-status');
+          if(s) s.innerHTML = `<span style="color:#e05555">Erreur : ${e.message}</span>`;
+        });
       } else {
-        body.innerHTML = `<div class="unsupported-wrap">
-          <i class="ti ti-alert-circle" style="font-size:52px;color:var(--text3)"></i>
-          <h3>${item.title||item.fileName||'Fichier HTML'}</h3>
-          <p style="color:var(--text3)">Impossible de trouver la source du fichier.</p>
-        </div>`;
+        const s = document.getElementById('html-status');
+        if(s) s.innerHTML = '<span style="color:#e05555">Fichier non disponible sur cet appareil</span>';
       }
     }
     else if(isNote || isText){
