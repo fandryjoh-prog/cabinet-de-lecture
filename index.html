@@ -1,8 +1,6 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <link rel="icon" href="/favicon-32x32.png" type="image/png" sizes="32x32">
-  <link rel="icon" href="/favicon-16x16.png" type="image/png" sizes="16x16">
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Art'fan — Cabinet de Lecture</title>
@@ -70,11 +68,14 @@ body{background:var(--bg,#fdf8ee);color:var(--text,#2c1f0e);}
 #s-app{z-index:10;align-items:stretch;}
 #s-garde{z-index:60;}
 #s-espaces{z-index:55;}
-html,body{height:100%;overflow:hidden;}
-#main-area{height:100%;overflow:hidden;}
-.panel{height:100%;overflow-y:auto;}
+/* App shell scroll fix */
+#main-area{flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0;}
+.panel{flex:1;overflow-y:auto;display:none;padding:18px;min-height:0;}
 .panel.active{display:flex;flex-direction:column;}
-#panel-bib{overflow-y:auto;}
+#panel-bib{overflow-y:auto;flex:1;}
+#panel-stats{overflow-y:auto;flex:1;}
+#panel-settings{overflow-y:auto;flex:1;}
+#panel-workspace{overflow-y:auto;flex:1;}
 
 /* PAGE DE GARDE */
 #s-garde{background:#1a120a;flex-direction:column;}
@@ -153,7 +154,7 @@ html,body{height:100%;overflow:hidden;}
 
 /* ===== APP SHELL ===== */
 #s-app{align-items:stretch;justify-content:flex-start;background:var(--bg3,#ede0c4);}
-#sidebar{width:var(--sidebar-w,250px);background:var(--bg,#fdf8ee);border-right:1px solid var(--border,#e0cfa8);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden;}
+#sidebar{width:var(--sidebar-w,250px);background:var(--bg);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden;transition:width .25s cubic-bezier(.4,0,.2,1);}
 #main-area{flex:1;display:flex;flex-direction:column;overflow:hidden;}
 
 /* SIDEBAR */
@@ -397,7 +398,7 @@ select option{background:var(--bg);color:var(--text);}
 .viewer-title{font-family:'Playfair Display',serif;font-size:15px;font-weight:600;color:var(--text);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .viewer-type{font-size:11px;color:var(--text3);background:var(--bg2);border:1px solid var(--border);padding:2px 8px;border-radius:99px;flex-shrink:0;}
 .viewer-actions{display:flex;gap:4px;flex-shrink:0;}
-.viewer-body{flex:1;overflow:hidden;position:relative;background:var(--bg);}
+.viewer-body{flex:1;overflow:hidden;position:relative;background:var(--bg3);}
 
 /* PDF viewer */
 .pdf-viewer{width:100%;height:100%;border:none;background:#525659;}
@@ -443,31 +444,31 @@ select option{background:var(--bg);color:var(--text);}
 /* ===== DASHBOARD SETTINGS ===== */
 @keyframes pulse-dot{0%,100%{opacity:1;box-shadow:0 0 8px #2ecc71}50%{opacity:.5;box-shadow:0 0 3px #2ecc71}}
 @keyframes scan-line{0%{top:-2px}100%{top:100%}}
-#dash-settings{min-height:100%;font-family:'Jost',sans-serif;color:#c8bfa0;position:relative;}
-#dash-settings::before{content:'';position:fixed;top:0;left:0;right:0;bottom:0;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(201,168,76,.008) 3px,rgba(201,168,76,.008) 4px);pointer-events:none;z-index:0;}
-.dash-bloc{background:linear-gradient(135deg,rgba(20,22,30,.9),rgba(10,12,16,.95));border:1px solid rgba(201,168,76,.2);border-radius:10px;padding:16px;position:relative;overflow:hidden;z-index:1;}
+#dash-settings{min-height:100%;font-family:'Jost',sans-serif;color:var(--text);position:relative;}
+#dash-settings::before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(128,128,128,.015) 3px,rgba(128,128,128,.015) 4px);pointer-events:none;z-index:0;}
+.dash-bloc{background:var(--bg2);border:1px solid rgba(201,168,76,.2);border-radius:10px;padding:16px;position:relative;overflow:hidden;z-index:1;}
 .dash-bloc::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(201,168,76,.4),transparent);}
 .dash-bloc::after{content:'';position:absolute;top:0;left:0;width:1px;height:100%;background:linear-gradient(to bottom,rgba(201,168,76,.3),transparent);}
-.dash-bloc-header{display:flex;align-items:center;gap:8px;font-family:'Cinzel',serif;font-size:11px;color:rgba(201,168,76,.8);letter-spacing:1.5px;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid rgba(201,168,76,.1);}
-.dash-bloc-header i{font-size:14px;color:var(--accent,#c9a84c);}
+.dash-bloc-header{display:flex;align-items:center;gap:8px;font-family:'Cinzel',serif;font-size:11px;color:var(--accent);letter-spacing:1.5px;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border);}
+.dash-bloc-header i{font-size:14px;color:var(--accent);}
 .dash-field{margin-bottom:10px;}
 .dash-field-lbl{font-size:10px;color:rgba(201,168,76,.5);letter-spacing:1px;text-transform:uppercase;margin-bottom:5px;}
 .dash-stat-row{display:flex;align-items:center;gap:8px;}
 .dash-stat-bar-wrap{flex:1;height:4px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden;}
-.dash-stat-bar{height:100%;background:linear-gradient(90deg,#c9a84c,#f5e4a8);border-radius:2px;transition:width .8s ease;}
+.dash-stat-bar{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2,var(--accent)));border-radius:2px;transition:width .8s ease;}
 .dash-stat-val{font-size:13px;font-weight:600;color:#c9a84c;min-width:28px;text-align:right;font-family:'Playfair Display',serif;}
-.dash-action-btn{background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.3);border-radius:6px;padding:8px 14px;font-size:11px;color:rgba(201,168,76,.8);cursor:pointer;font-family:'Cinzel',serif;letter-spacing:1px;transition:.15s;}
-.dash-action-btn:hover{background:rgba(201,168,76,.18);border-color:rgba(201,168,76,.6);color:#f5e4a8;}
-.dash-pin-row{display:flex;align-items:center;gap:5px;padding:5px 8px;background:rgba(255,255,255,.03);border-radius:6px;border:1px solid rgba(255,255,255,.05);}
+.dash-action-btn{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:8px 14px;font-size:11px;color:var(--text2);cursor:pointer;font-family:'Cinzel',serif;letter-spacing:1px;transition:.15s;}
+.dash-action-btn:hover{background:var(--accent3);border-color:var(--accent);color:var(--accent);}
+.dash-pin-row{display:flex;align-items:center;gap:5px;padding:5px 8px;background:var(--bg3);border-radius:6px;border:1px solid var(--border);}
 .dash-pin-row>span{font-size:12px;flex:1;}
 .dash-pin-status{font-size:9px;color:rgba(201,168,76,.4);letter-spacing:.5px;}
-.dash-mini-btn{background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.2);border-radius:4px;padding:3px 7px;font-size:10px;color:rgba(201,168,76,.7);cursor:pointer;font-family:'Cinzel',serif;letter-spacing:.5px;transition:.12s;flex-shrink:0;}
-.dash-mini-btn:hover{background:rgba(201,168,76,.25);color:#f5e4a8;}
-.dash-quick-stat{background:rgba(255,255,255,.03);border:1px solid rgba(201,168,76,.12);border-radius:8px;padding:12px 10px;text-align:center;}
-.dash-quick-stat-n{font-family:'Playfair Display',serif;font-size:24px;font-weight:700;color:#c9a84c;text-shadow:0 0 12px rgba(201,168,76,.3);}
-.dash-quick-stat-l{font-size:10px;color:rgba(201,168,76,.45);letter-spacing:.8px;margin-top:3px;text-transform:uppercase;}
-.dash-kbd-item{display:flex;align-items:center;gap:8px;font-size:12px;color:rgba(200,190,160,.6);}
-.dash-kbd{background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.3);border-radius:4px;padding:3px 9px;font-size:11px;color:rgba(201,168,76,.8);font-family:monospace;box-shadow:0 2px 0 rgba(0,0,0,.4);}
+.dash-mini-btn{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:3px 7px;font-size:10px;color:var(--text2);cursor:pointer;font-family:'Cinzel',serif;letter-spacing:.5px;transition:.12s;flex-shrink:0;}
+.dash-mini-btn:hover{background:var(--accent3);color:var(--accent);}
+.dash-quick-stat{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:12px 10px;text-align:center;}
+.dash-quick-stat-n{font-family:'Playfair Display',serif;font-size:24px;font-weight:700;color:var(--accent);}
+.dash-quick-stat-l{font-size:10px;color:var(--text3);letter-spacing:.8px;margin-top:3px;text-transform:uppercase;}
+.dash-kbd-item{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text3);}
+.dash-kbd{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:3px 9px;font-size:11px;color:var(--text2);font-family:monospace;box-shadow:0 2px 0 rgba(0,0,0,.15);}
 .dash-theme-dot{width:24px;height:24px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:.15s;position:relative;}
 .dash-theme-dot:hover{transform:scale(1.2);}
 .dash-theme-dot.on{border-color:#c9a84c;box-shadow:0 0 10px rgba(201,168,76,.5);}
@@ -786,15 +787,15 @@ mark{background:var(--accent3);color:var(--accent);border-radius:2px;padding:0 1
       </div>
     </div>
 
-    <div class="panel" id="panel-settings" style="padding:0;overflow-y:auto;background:#0a0c10;">
+    <div class="panel" id="panel-settings" style="padding:0;overflow-y:auto;">
       <!-- DASHBOARD FUTURISTE-VINTAGE -->
-      <div id="dash-settings">
+      <div id="dash-settings" style="background:var(--bg3);min-height:100%;">
 
         <div style="padding:16px 28px 0">
           <button class="page-back-btn" onclick="showPanel('bib')"><i class="ti ti-arrow-left"></i>Retour</button>
         </div>
         <!-- HEADER STRIP -->
-        <div style="background:linear-gradient(90deg,#0a0c10,#12161e,#0a0c10);border-bottom:1px solid rgba(201,168,76,.2);padding:16px 28px;display:flex;align-items:center;gap:16px;">
+        <div style="background:var(--bg2);border-bottom:1px solid var(--border);padding:16px 28px;display:flex;align-items:center;gap:16px;border-radius:10px 10px 0 0;">
           <div style="width:3px;height:32px;background:linear-gradient(to bottom,#c9a84c,rgba(201,168,76,.1));border-radius:2px"></div>
           <div>
             <div style="font-family:'Cinzel',serif;font-size:16px;color:#c9a84c;letter-spacing:2px;">TABLEAU DE BORD</div>
@@ -1699,7 +1700,21 @@ function showScreen(id){
 function goToGarde(){showScreen('s-garde');}
 function goToEspaces(){
   updateLockIcons();
+  // Update space card stats
+  updateEspaceCards();
   showScreen('s-espaces');
+}
+
+function updateEspaceCards(){
+  ['perso','pro','eglise','etude'].forEach(esp=>{
+    const cnt = DB.filter(i=>i.espace===esp).length;
+    // Update count on card if element exists
+    const card = document.querySelector(`.esp-card[onclick*="${esp}"] .esp-desc`);
+    if(card && esp !== 'global'){
+      const labels = {perso:'Lectures & notes personnelles',pro:'Dossiers professionnels',eglise:'Prédications & ressources',etude:'Cours & recherches'};
+      card.textContent = (labels[esp]||'') + (cnt>0?` · ${cnt} élément${cnt>1?'s':''}` :'');
+    }
+  });
 }
 function updateLockIcons(){
   ['perso','pro','eglise','etude'].forEach(e=>{
@@ -1712,24 +1727,63 @@ function selectEspace(esp){
   enterApp(esp);
 }
 function enterApp(esp){
-  curEspace=esp;
-  const ec=ESPACES[esp];
-  // Apply theme
-  document.body.className=ec.theme;
-  // Update sidebar header
-  document.getElementById('sb-emoji').textContent=ec.emoji;
-  document.getElementById('sb-esp-name').textContent=ec.name;
-  // Reset state
-  filt='all';srch='';ftag=null;fFolder=null;
-  document.getElementById('search').value='';
+  curEspace = esp;
+  const ec = ESPACES[esp] || ESPACES.perso;
+
+  // 1. Apply theme immediately
+  document.body.className = ec.theme;
+
+  // 2. Reset ALL state
+  filt='all'; srch=''; ftag=null; fFolder=null;
+  selectedDocs = new Set(); selectionMode = false;
+  sortMode = 'date-desc';
+
+  // 3. Reset UI controls
+  const searchEl = document.getElementById('search');
+  if(searchEl) searchEl.value = '';
+  const sortEl = document.getElementById('sort-sel');
+  if(sortEl) sortEl.value = 'date-desc';
+
+  // 4. Update sidebar header
+  document.getElementById('sb-emoji').textContent = ec.emoji;
+  document.getElementById('sb-esp-name').textContent = ec.name;
+
+  // 5. Reset nav active state
   document.querySelectorAll('.nav-flat').forEach(x=>x.classList.remove('active'));
-  document.querySelector('.nav-flat[data-f="all"]').classList.add('active');
-  // Render
+  const allNav = document.querySelector('.nav-flat[data-f="all"]');
+  if(allNav) allNav.classList.add('active');
+
+  // 6. Clear content panels immediately to avoid stale data flash
+  const bibPanel = document.getElementById('panel-bib');
+  if(bibPanel) bibPanel.innerHTML = '<div class="empty"><i class="ti ti-loader-2" style="animation:spin 1s linear infinite;font-size:32px"></i></div>';
+
+  // 7. Clear tag cloud and folder tree immediately
+  const tagCloud = document.getElementById('tag-cloud');
+  if(tagCloud) tagCloud.innerHTML = '';
+  const folderTree = document.getElementById('folder-tree');
+  if(folderTree) folderTree.innerHTML = '';
+
+  // 8. Re-render everything for new espace
   buildThemeDots();
   buildFolderTree();
   updateSidebar();
+
+  // 9. Show panel and screen
   showPanel('bib');
   showScreen('s-app');
+
+  // 10. Render content with slight delay to ensure DOM is ready
+  requestAnimationFrame(()=>{ renderBib(); });
+
+  // 11. Restore sidebar state
+  sidebarOpen = SETTINGS.sidebarOpen !== false;
+  const sb2 = document.getElementById('sidebar');
+  const icon2 = document.getElementById('sb-toggle-icon');
+  if(sb2) sb2.classList.toggle('collapsed', !sidebarOpen);
+  if(icon2) icon2.className = sidebarOpen ? 'ti ti-chevron-left' : 'ti ti-chevron-right';
+
+  // 12. Update sync status
+  if(currentUser) updateSyncStatus('ok', 'Connecté');
 }
 
 // ===== THEME DOTS =====
@@ -3601,7 +3655,6 @@ function renderWorkspace(){
 }
 
 function switchToEspace(espId){
-  showPanel('bib');
   selectEspace(espId);
 }
 
