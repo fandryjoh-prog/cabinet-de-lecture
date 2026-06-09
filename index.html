@@ -553,6 +553,7 @@ mark{background:var(--accent3);color:var(--accent);border-radius:2px;padding:0 1
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<base target="_blank">
 </head>
 <body class="t-perso">
 
@@ -1332,7 +1333,76 @@ function openViewer(itemOrId){
             // Replace the Google Fonts link tag with inline style
             textContent = textContent.replace(
               new RegExp(`<link[^>]*href=['"]*${fontUrl.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}[^>]*>`, 'i'),
-              `<style>${cssText}</style>`
+              `<style>${cssText}
+
+/* ═══════════════════════════════════════════════════════════════
+   ART'FAN v3.1 — COLLECTIONS TYPÉES (intégré nativement)
+   ═══════════════════════════════════════════════════════════════ */
+
+.view-toolbar{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;background:var(--bg);border-bottom:1px solid var(--border);margin:-18px -18px 18px -18px;gap:12px;flex-wrap:wrap}
+.view-selector{display:flex;align-items:center;gap:16px;flex:1}
+.vs-label{display:flex;align-items:center;gap:8px;font-family:'Cinzel',serif;font-size:14px;color:var(--accent);font-weight:600;letter-spacing:.5px}
+.vs-label i{font-size:18px}
+.vs-tabs{display:flex;gap:4px;background:var(--bg2);padding:3px;border-radius:8px;border:1px solid var(--border)}
+.vs-tab{display:flex;align-items:center;gap:6px;padding:6px 12px;border:none;background:transparent;color:var(--text3);font-family:'Jost',sans-serif;font-size:12px;cursor:pointer;border-radius:6px;transition:all .15s}
+.vs-tab:hover{background:var(--bg3);color:var(--text2)}
+.vs-tab.active{background:var(--bg);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.1)}
+.vs-tab i{font-size:14px}
+.view-tableau-container{display:flex;flex-direction:column;gap:12px}
+.view-tableau-header{display:flex;align-items:center;justify-content:space-between;padding:0 4px}
+.vt-count{font-size:12px;color:var(--text3)}
+.vt-actions{display:flex;gap:8px}
+.vt-btn{display:flex;align-items:center;gap:6px;padding:6px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:7px;color:var(--text2);font-family:'Jost',sans-serif;font-size:12px;cursor:pointer;transition:all .15s}
+.vt-btn:hover{background:var(--accent3);border-color:var(--accent);color:var(--accent)}
+.tableau-wrapper{overflow-x:auto;border:1px solid var(--border);border-radius:10px;background:var(--bg)}
+.tableau{min-width:100%;display:table}
+.tableau-row{display:flex;border-bottom:1px solid var(--border);transition:background .1s}
+.tableau-row:last-child{border-bottom:none}
+.tableau-row.header{background:var(--bg2);position:sticky;top:0;z-index:10;font-weight:500}
+.tableau-row.data-row:hover{background:var(--accent3);cursor:pointer}
+.tableau-cell{padding:10px 12px;font-size:13px;color:var(--text);border-right:1px solid var(--border);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:0;position:relative}
+.tableau-cell:last-child{border-right:none}
+.header-cell{display:flex;align-items:center;justify-content:space-between;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);font-weight:600;padding:8px 12px}
+.th-label{cursor:pointer;display:flex;align-items:center;gap:6px;flex:1}
+.th-label:hover{color:var(--accent)}
+.th-resize{position:absolute;right:0;top:0;bottom:0;width:4px;cursor:col-resize;background:transparent;transition:background .15s}
+.th-resize:hover{background:var(--accent)}
+.actions-cell{display:flex;align-items:center;justify-content:center;gap:4px;padding:6px}
+.tc-action{background:transparent;border:none;color:var(--text3);cursor:pointer;padding:4px;border-radius:4px;font-size:14px;transition:all .15s}
+.tc-action:hover{background:var(--bg3);color:var(--accent)}
+.tc-title{font-weight:500;color:var(--text)}
+.tc-empty{color:var(--text4);font-style:italic}
+.tc-badge{display:inline-block;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:500}
+.tc-rating{color:var(--accent);letter-spacing:-1px;font-size:12px}
+.tc-progress{display:flex;align-items:center;gap:8px}
+.tc-progress-bar{flex:1;height:4px;background:var(--bg3);border-radius:2px;overflow:hidden;min-width:40px}
+.tc-progress-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .3s}
+.tc-progress-text{font-size:11px;color:var(--text3);min-width:40px;text-align:right}
+.tc-check{color:var(--text4);font-size:14px}
+.tc-check.checked{color:#2ecc71}
+.tc-tags{display:flex;flex-wrap:wrap;gap:3px}
+.tc-tag{background:var(--accent3);color:var(--accent);font-size:10px;padding:2px 7px;border-radius:99px;border:1px solid var(--accent);opacity:.8}
+.tc-date{font-size:12px;color:var(--text3)}
+.tc-link{color:var(--accent);text-decoration:none;font-size:12px;display:inline-flex;align-items:center;gap:4px}
+.tc-link:hover{text-decoration:underline}
+.tc-number{font-variant-numeric:tabular-nums;font-size:12px;color:var(--text2)}
+.tc-text{color:var(--text2)}
+.tc-edit-input,.tc-edit-select{width:100%;background:var(--bg);border:1px solid var(--accent);border-radius:6px;padding:6px 8px;font-family:'Jost',sans-serif;font-size:13px;color:var(--text);outline:none}
+.tc-edit-select{cursor:pointer}
+.tc-edit-rating{display:flex;align-items:center;gap:2px}
+.tc-edit-star{font-size:18px;color:var(--bg3);cursor:pointer;transition:color .1s}
+.tc-edit-star.on{color:var(--accent)}
+.tc-edit-clear{margin-left:8px;background:none;border:none;color:var(--text4);cursor:pointer;font-size:14px}
+.tc-edit-clear:hover{color:#e05555}
+.tc-edit-tags{display:flex;flex-wrap:wrap;gap:4px;max-width:200px}
+.tc-edit-tag{background:var(--bg2);border:1px solid var(--border);border-radius:99px;padding:3px 8px;font-size:11px;color:var(--text3);cursor:pointer;transition:all .15s}
+.tc-edit-tag.selected{background:var(--accent3);border-color:var(--accent);color:var(--accent)}
+.tc-edit-tag-input{background:var(--bg);border:1px dashed var(--border);border-radius:99px;padding:3px 8px;font-size:11px;color:var(--text);width:80px;outline:none}
+.tc-edit-tag-input:focus{border-color:var(--accent)}
+.tc-edit-check{width:18px;height:18px;accent-color:var(--accent);cursor:pointer}
+@media(max-width:768px){.view-toolbar{flex-direction:column;align-items:stretch}.vs-tabs{overflow-x:auto}.tableau-wrapper{font-size:12px}.tableau-cell{padding:8px}}
+
+</style>`
             );
           }catch(e){}
         }
@@ -3788,6 +3858,380 @@ function prepareHtmlForDisplay(rawText, baseUrl){
 
 // openViewer handles storageUrl natively
 
+
+
+
+
+// ═══════════════════════════════════════════════════════════════
+// ART'FAN v3.1 — COLLECTIONS TYPÉES (intégré nativement)
+// ═══════════════════════════════════════════════════════════════
+
+const COLLECTION_SCHEMAS = {
+  livre: {
+    icon: 'ti-book', label: 'Livre',
+    properties: [
+      { id: 'titre', type: 'title', label: 'Titre', required: true, width: 280 },
+      { id: 'auteur', type: 'text', label: 'Auteur', width: 180 },
+      { id: 'statut', type: 'select', label: 'Statut', options: ['À lire', 'En cours', 'Lu', 'Abandonné'], width: 120 },
+      { id: 'note', type: 'rating', label: 'Note', max: 5, width: 100 },
+      { id: 'pages_lues', type: 'progress', label: 'Progression', totalProp: 'pages_total', width: 140 },
+      { id: 'pages_total', type: 'number', label: 'Pages total', hidden: true },
+      { id: 'isbn', type: 'text', label: 'ISBN', width: 140, placeholder: '978-...' },
+      { id: 'couverture', type: 'url', label: 'Couverture', hidden: true },
+      { id: 'tags', type: 'multi_select', label: 'Tags', width: 160 },
+      { id: 'resume', type: 'rich_text', label: 'Résumé', hidden: true },
+      { id: 'date_lecture', type: 'date', label: 'Date de lecture', width: 130 },
+      { id: 'collection', type: 'checkbox', label: 'Collection physique', width: 130 },
+      { id: 'prete_a', type: 'text', label: 'Prêté à', width: 140 },
+      { id: 'url', type: 'url', label: 'Lien', hidden: true },
+      { id: 'folder', type: 'relation', label: 'Dossier', target: 'folder', hidden: true }
+    ],
+    views: ['cartes', 'tableau', 'galerie']
+  },
+  article: {
+    icon: 'ti-link', label: 'Article',
+    properties: [
+      { id: 'titre', type: 'title', label: 'Titre', required: true, width: 300 },
+      { id: 'site_source', type: 'text', label: 'Site / Source', width: 180 },
+      { id: 'statut', type: 'select', label: 'Statut', options: ['À lire', 'En cours', 'Lu', 'Archivé'], width: 120 },
+      { id: 'note', type: 'rating', label: 'Note', max: 5, width: 100 },
+      { id: 'url', type: 'url', label: 'URL', width: 200 },
+      { id: 'tags', type: 'multi_select', label: 'Tags', width: 160 },
+      { id: 'resume', type: 'rich_text', label: 'Résumé', hidden: true },
+      { id: 'date_lecture', type: 'date', label: 'Date', width: 130 },
+      { id: 'folder', type: 'relation', label: 'Dossier', target: 'folder', hidden: true }
+    ],
+    views: ['cartes', 'tableau']
+  },
+  note: {
+    icon: 'ti-notes', label: 'Note',
+    properties: [
+      { id: 'titre', type: 'title', label: 'Titre', required: true, width: 300 },
+      { id: 'contenu', type: 'rich_text', label: 'Contenu', hidden: true },
+      { id: 'statut', type: 'select', label: 'Statut', options: ['Brouillon', 'En cours', 'Finalisé', 'Archivé'], width: 120 },
+      { id: 'tags', type: 'multi_select', label: 'Tags', width: 160 },
+      { id: 'date', type: 'date', label: 'Date', width: 130 },
+      { id: 'dossier', type: 'relation', label: 'Dossier', target: 'folder', width: 180 },
+      { id: 'folder', type: 'relation', label: 'Dossier sys', target: 'folder', hidden: true }
+    ],
+    views: ['cartes', 'tableau']
+  },
+  media: {
+    icon: 'ti-player-play', label: 'Média',
+    properties: [
+      { id: 'titre', type: 'title', label: 'Titre', required: true, width: 280 },
+      { id: 'type_media', type: 'select', label: 'Type', options: ['Vidéo', 'Audio', 'Podcast'], width: 100 },
+      { id: 'auteur', type: 'text', label: 'Auteur / Chaîne', width: 180 },
+      { id: 'statut', type: 'select', label: 'Statut', options: ['À voir', 'En cours', 'Vu', 'Archivé'], width: 120 },
+      { id: 'note', type: 'rating', label: 'Note', max: 5, width: 100 },
+      { id: 'duree', type: 'text', label: 'Durée', width: 80, placeholder: '45min' },
+      { id: 'url', type: 'url', label: 'URL', width: 200 },
+      { id: 'tags', type: 'multi_select', label: 'Tags', width: 160 },
+      { id: 'resume', type: 'rich_text', label: 'Résumé', hidden: true },
+      { id: 'date_visionnage', type: 'date', label: 'Date', width: 130 },
+      { id: 'folder', type: 'relation', label: 'Dossier', target: 'folder', hidden: true }
+    ],
+    views: ['cartes', 'tableau', 'galerie']
+  },
+  doc: {
+    icon: 'ti-files', label: 'Fichier',
+    properties: [
+      { id: 'titre', type: 'title', label: 'Nom', required: true, width: 300 },
+      { id: 'doc_type', type: 'select', label: 'Type', options: ['PDF', 'Image', 'HTML', 'URL', 'Office', 'Archive', 'Autre'], width: 100 },
+      { id: 'taille', type: 'text', label: 'Taille', width: 90, readOnly: true },
+      { id: 'folder', type: 'relation', label: 'Dossier', target: 'folder', width: 180 },
+      { id: 'date_ajout', type: 'date', label: 'Date ajout', width: 130, readOnly: true },
+      { id: 'tags', type: 'multi_select', label: 'Tags', width: 160 },
+      { id: 'notes', type: 'rich_text', label: 'Notes', hidden: true }
+    ],
+    views: ['cartes', 'tableau']
+  }
+};
+
+let VIEW_STATE = JSON.parse(localStorage.getItem('cab2_view_state') || '{}');
+function saveViewState() { localStorage.setItem('cab2_view_state', JSON.stringify(VIEW_STATE)); }
+
+function enrichItem(item) {
+  if (!item || item._enriched) return item;
+  const schema = COLLECTION_SCHEMAS[item.type];
+  if (!schema) return { ...item, _enriched: true, _schema: 'legacy' };
+  const propertyMap = {
+    livre: { titre: item.title || '', auteur: item.author || '', statut: item.status === 'lu' ? 'Lu' : item.status === 'en-cours' ? 'En cours' : 'À lire', note: item.rating || 0, pages_lues: item.pageCur || 0, pages_total: item.pageTotal || 0, isbn: '', couverture: item.coverUrl || '', tags: item.tags || [], resume: item.notes || '', date_lecture: item.date || '', collection: false, prete_a: '', url: item.url || '', folder: item.folder || null },
+    article: { titre: item.title || '', site_source: item.author || '', statut: item.status === 'lu' ? 'Lu' : item.status === 'en-cours' ? 'En cours' : 'À lire', note: item.rating || 0, url: item.url || '', tags: item.tags || [], resume: item.notes || '', date_lecture: item.date || '', folder: item.folder || null },
+    note: { titre: item.title || '', contenu: item.notes || '', statut: item.status === 'lu' ? 'Finalisé' : item.status === 'en-cours' ? 'En cours' : 'Brouillon', tags: item.tags || [], date: item.date || '', dossier: item.folder || null, folder: item.folder || null },
+    media: { titre: item.title || '', type_media: item.mediaType === 'audio' ? 'Audio' : item.mediaType === 'podcast' ? 'Podcast' : 'Vidéo', auteur: item.author || '', statut: item.status === 'lu' ? 'Vu' : item.status === 'en-cours' ? 'En cours' : 'À voir', note: item.rating || 0, duree: '', url: item.url || item.mediaData || '', tags: item.tags || [], resume: item.notes || '', date_visionnage: item.date || '', folder: item.folder || null },
+    doc: { titre: item.title || item.fileName || '', doc_type: item.docType === 'pdf' ? 'PDF' : item.docType === 'image' ? 'Image' : item.docType === 'html' ? 'HTML' : item.docType === 'url' ? 'URL' : 'Autre', taille: item.fileSize ? formatSize(item.fileSize) : '', folder: item.folder || null, date_ajout: item.date || '', tags: item.tags || [], notes: item.notes || '' }
+  };
+  const mapped = propertyMap[item.type] || {};
+  const properties = {};
+  schema.properties.forEach(prop => { properties[prop.id] = { type: prop.type, value: mapped[prop.id] !== undefined ? mapped[prop.id] : '', label: prop.label }; });
+  return { ...item, _enriched: true, _schema: item.type, _properties: properties };
+}
+
+function getPropValue(item, propId) {
+  if (item._enriched && item._properties) return item._properties[propId]?.value ?? '';
+  const fallbackMap = { titre: 'title', auteur: 'author', statut: 'status', note: 'rating', tags: 'tags', resume: 'notes', url: 'url', folder: 'folder' };
+  return item[fallbackMap[propId] || propId] || '';
+}
+
+function setPropValue(item, propId, value) {
+  if (item._enriched && item._properties) item._properties[propId].value = value;
+  const reverseMap = { titre: 'title', auteur: 'author', tags: 'tags', resume: 'notes', url: 'url', folder: 'folder' };
+  if (reverseMap[propId]) item[reverseMap[propId]] = value;
+  if (propId === 'statut') { const statusMap = { 'À lire': 'a-lire', 'En cours': 'en-cours', 'Lu': 'lu', 'Abandonné': 'lu', 'Brouillon': 'a-lire', 'Finalisé': 'lu', 'Archivé': 'lu', 'À voir': 'a-lire', 'Vu': 'lu' }; item.status = statusMap[value] || item.status; }
+  if (propId === 'note') item.rating = value;
+  if (propId === 'pages_lues') item.pageCur = value;
+  if (propId === 'pages_total') item.pageTotal = value;
+  if (['date_lecture', 'date', 'date_visionnage', 'date_ajout'].includes(propId)) item.date = value;
+}
+
+let tableauEditing = null, customSort = null;
+
+function renderTableau(items, container) {
+  const schema = COLLECTION_SCHEMAS[filt] || COLLECTION_SCHEMAS.livre;
+  const visibleProps = schema.properties.filter(p => !p.hidden);
+  const state = VIEW_STATE[filt] || { columnWidths: {}, sortBy: null, sortDesc: false };
+  const enrichedItems = items.map(enrichItem);
+  let html = '<div class="view-tableau-container"><div class="view-tableau-header">';
+  html += '<span class="vt-count">' + items.length + ' élément' + (items.length > 1 ? 's' : '') + '</span>';
+  html += '<div class="vt-actions"><button class="vt-btn" onclick="exportTableauCSV()"><i class="ti ti-file-export"></i> CSV</button></div></div>';
+  html += '<div class="tableau-wrapper"><div class="tableau">';
+  html += '<div class="tableau-row header">';
+  visibleProps.forEach(p => {
+    html += '<div class="tableau-cell header-cell" style="width:' + (state.columnWidths?.[p.id] || p.width || 150) + 'px" data-prop="' + p.id + '">';
+    html += '<span class="th-label" onclick="sortTableau('' + p.id + '')">' + p.label;
+    if (state.sortBy === p.id) html += ' <i class="ti ti-chevron-' + (state.sortDesc ? 'down' : 'up') + '"></i>';
+    html += '</span><div class="th-resize" onmousedown="startResizeCol(event, '' + p.id + '')"></div></div>';
+  });
+  html += '<div class="tableau-cell header-cell actions-cell" style="width:80px">Actions</div></div>';
+  html += '<div class="tableau-body">';
+  enrichedItems.forEach(item => {
+    html += '<div class="tableau-row data-row" data-id="' + item.id + '" onclick="openDetail(' + item.id + ')">';
+    visibleProps.forEach(p => {
+      html += '<div class="tableau-cell" style="width:' + (state.columnWidths?.[p.id] || p.width || 150) + 'px" data-prop="' + p.id + '" onclick="event.stopPropagation(); editTableauCell(' + item.id + ', '' + p.id + '', this)">';
+      html += renderTableauCell(item, p) + '</div>';
+    });
+    html += '<div class="tableau-cell actions-cell" style="width:80px" onclick="event.stopPropagation()">';
+    html += '<button class="tc-action" onclick="openDetail(' + item.id + ')" title="Voir"><i class="ti ti-eye"></i></button>';
+    html += '<button class="tc-action" onclick="openEditFromTableau(' + item.id + ')" title="Modifier"><i class="ti ti-edit"></i></button></div></div>';
+  });
+  html += '</div></div></div></div>';
+  container.innerHTML = html;
+}
+
+function renderTableauCell(item, propDef) {
+  const value = getPropValue(item, propDef.id);
+  switch (propDef.type) {
+    case 'title': return '<span class="tc-title">' + (value || '<span class="tc-empty">Sans titre</span>') + '</span>';
+    case 'select': { const colors = { 'À lire': 'var(--accent)', 'À voir': 'var(--accent)', 'En cours': '#f0c040', 'Brouillon': '#f0c040', 'Lu': '#2ecc71', 'Vu': '#2ecc71', 'Finalisé': '#2ecc71', 'Abandonné': '#e05555', 'Archivé': '#888' }; return '<span class="tc-badge" style="background:' + (colors[value] || 'var(--bg3)') + '20;color:' + (colors[value] || 'var(--text2)') + ';border:1px solid ' + (colors[value] || 'var(--border)') + '40">' + (value || '—') + '</span>'; }
+    case 'rating': return value ? '<span class="tc-rating">' + '★'.repeat(value) + '☆'.repeat(5 - value) + '</span>' : '<span class="tc-empty">—</span>';
+    case 'progress': { const total = getPropValue(item, propDef.totalProp) || 0; const pct = total > 0 ? Math.round((value / total) * 100) : 0; return '<div class="tc-progress"><div class="tc-progress-bar"><div class="tc-progress-fill" style="width:' + pct + '%"></div></div><span class="tc-progress-text">' + value + '/' + total + '</span></div>'; }
+    case 'checkbox': return '<span class="tc-check' + (value ? ' checked' : '') + '"><i class="ti ti-' + (value ? 'check' : 'minus') + '"></i></span>';
+    case 'multi_select': return !value || !value.length ? '<span class="tc-empty">—</span>' : '<div class="tc-tags">' + value.map(t => '<span class="tc-tag">' + t + '</span>').join('') + '</div>';
+    case 'date': return !value ? '<span class="tc-empty">—</span>' : '<span class="tc-date">' + new Date(value).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) + '</span>';
+    case 'url': return !value ? '<span class="tc-empty">—</span>' : '<a href="' + value + '" target="_blank" class="tc-link" onclick="event.stopPropagation()"><i class="ti ti-external-link"></i> Lien</a>';
+    case 'number': return '<span class="tc-number">' + (value !== '' ? value : '—') + '</span>';
+    default: return '<span class="tc-text">' + (value || '<span class="tc-empty">—</span>') + '</span>';
+  }
+}
+
+function editTableauCell(itemId, propId, cell) {
+  if (tableauEditing) return;
+  const item = DB.find(i => i.id === itemId);
+  if (!item) return;
+  const schema = COLLECTION_SCHEMAS[item.type] || COLLECTION_SCHEMAS.livre;
+  const propDef = schema.properties.find(p => p.id === propId);
+  if (!propDef || propDef.readOnly) return;
+  const currentValue = getPropValue(item, propId);
+  tableauEditing = { itemId, propId, cell };
+  let inputHtml = '';
+  switch (propDef.type) {
+    case 'select': inputHtml = '<select class="tc-edit-select" onblur="saveTableauCell()" onchange="saveTableauCell()"><option value="">—</option>' + propDef.options.map(o => '<option value="' + o + '"' + (o === currentValue ? ' selected' : '') + '>' + o + '</option>').join('') + '</select>'; break;
+    case 'rating': inputHtml = '<div class="tc-edit-rating">' + [1,2,3,4,5].map(n => '<span class="tc-edit-star' + (n <= currentValue ? ' on' : '') + '" onclick="setTableauRating(' + n + ')">★</span>').join('') + '<button class="tc-edit-clear" onclick="setTableauRating(0)">×</button></div>'; break;
+    case 'number': case 'progress': inputHtml = '<input type="number" class="tc-edit-input" value="' + currentValue + '" min="0" onblur="saveTableauCell()" onkeydown="tableauKeydown(event)">'; break;
+    case 'checkbox': inputHtml = '<input type="checkbox" class="tc-edit-check"' + (currentValue ? ' checked' : '') + ' onchange="saveTableauCell()">'; break;
+    case 'date': inputHtml = '<input type="date" class="tc-edit-input" value="' + currentValue + '" onblur="saveTableauCell()" onkeydown="tableauKeydown(event)">'; break;
+    case 'multi_select': { const allTags = [...new Set(DB.flatMap(i => i.tags || []))]; inputHtml = '<div class="tc-edit-tags">' + allTags.map(t => '<span class="tc-edit-tag' + ((currentValue || []).includes(t) ? ' selected' : '') + '" onclick="this.classList.toggle('selected')">' + t + '</span>').join('') + '<input type="text" class="tc-edit-tag-input" placeholder="+ nouveau" onkeydown="if(event.key==='Enter'){const s=document.createElement('span');s.className='tc-edit-tag selected';s.textContent=this.value;this.parentElement.insertBefore(s,this);this.value='';event.preventDefault()}" onblur="saveTableauCell()"></div>'; break; }
+    default: inputHtml = '<input type="text" class="tc-edit-input" value="' + (currentValue || '').toString().replace(/"/g, '&quot;') + '" placeholder="' + (propDef.placeholder || '') + '" onblur="saveTableauCell()" onkeydown="tableauKeydown(event)">';
+  }
+  cell.innerHTML = inputHtml;
+  const input = cell.querySelector('input, select');
+  if (input) { input.focus(); if (input.select) input.select(); }
+}
+
+function tableauKeydown(e) { if (e.key === 'Enter') { e.preventDefault(); saveTableauCell(); } if (e.key === 'Escape') cancelTableauEdit(); }
+
+function saveTableauCell() {
+  if (!tableauEditing) return;
+  const { itemId, propId, cell } = tableauEditing;
+  const item = DB.find(i => i.id === itemId);
+  if (!item) return;
+  let newValue;
+  const input = cell.querySelector('input, select');
+  if (input) newValue = input.type === 'checkbox' ? input.checked : input.value;
+  else newValue = [...cell.querySelectorAll('.tc-edit-tag.selected')].map(t => t.textContent.trim());
+  setPropValue(item, propId, newValue);
+  save();
+  const schema = COLLECTION_SCHEMAS[item.type] || COLLECTION_SCHEMAS.livre;
+  const propDef = schema.properties.find(p => p.id === propId);
+  cell.innerHTML = renderTableauCell(enrichItem(item), propDef);
+  tableauEditing = null;
+  toast('Modifié', 'ti-check');
+}
+
+function cancelTableauEdit() {
+  if (!tableauEditing) return;
+  const { itemId, propId, cell } = tableauEditing;
+  const item = DB.find(i => i.id === itemId);
+  if (item) {
+    const schema = COLLECTION_SCHEMAS[item.type] || COLLECTION_SCHEMAS.livre;
+    const propDef = schema.properties.find(p => p.id === propId);
+    cell.innerHTML = renderTableauCell(enrichItem(item), propDef);
+  }
+  tableauEditing = null;
+}
+
+function setTableauRating(n) {
+  if (!tableauEditing) return;
+  const { cell } = tableauEditing;
+  cell.querySelectorAll('.tc-edit-star').forEach((s, i) => s.classList.toggle('on', i < n));
+  cell.dataset.pendingValue = n;
+  setTimeout(() => saveTableauCell(), 150);
+}
+
+function sortTableau(propId) {
+  const state = VIEW_STATE[filt] || {};
+  if (state.sortBy === propId) state.sortDesc = !state.sortDesc;
+  else { state.sortBy = propId; state.sortDesc = false; }
+  VIEW_STATE[filt] = state;
+  saveViewState();
+  sortMode = 'custom';
+  customSort = { prop: propId, desc: state.sortDesc };
+  renderBib();
+}
+
+let resizeState = null;
+function startResizeCol(e, propId) {
+  e.preventDefault(); e.stopPropagation();
+  const cell = e.target.closest('.tableau-cell');
+  const startX = e.clientX, startWidth = cell.offsetWidth;
+  resizeState = { propId, startX, startWidth };
+  document.addEventListener('mousemove', onResizeMove);
+  document.addEventListener('mouseup', onResizeEnd);
+  document.body.style.cursor = 'col-resize';
+  document.body.style.userSelect = 'none';
+}
+function onResizeMove(e) {
+  if (!resizeState) return;
+  const delta = e.clientX - resizeState.startX;
+  const newWidth = Math.max(60, resizeState.startWidth + delta);
+  document.querySelectorAll('.tableau-cell[data-prop="' + resizeState.propId + '"]').forEach(cell => cell.style.width = newWidth + 'px');
+}
+function onResizeEnd(e) {
+  if (!resizeState) return;
+  const delta = e.clientX - resizeState.startX;
+  const newWidth = Math.max(60, resizeState.startWidth + delta);
+  if (!VIEW_STATE[filt]) VIEW_STATE[filt] = {};
+  if (!VIEW_STATE[filt].columnWidths) VIEW_STATE[filt].columnWidths = {};
+  VIEW_STATE[filt].columnWidths[resizeState.propId] = newWidth;
+  saveViewState();
+  resizeState = null;
+  document.removeEventListener('mousemove', onResizeMove);
+  document.removeEventListener('mouseup', onResizeEnd);
+  document.body.style.cursor = '';
+  document.body.style.userSelect = '';
+}
+
+function exportTableauCSV() {
+  const items = getFiltered();
+  const schema = COLLECTION_SCHEMAS[filt] || COLLECTION_SCHEMAS.livre;
+  const visibleProps = schema.properties.filter(p => !p.hidden);
+  let csv = visibleProps.map(p => '"' + p.label + '"').join(';') + '
+';
+  items.forEach(item => {
+    const enriched = enrichItem(item);
+    const row = visibleProps.map(p => {
+      let val = getPropValue(enriched, p.id);
+      if (Array.isArray(val)) val = val.join(', ');
+      return '"' + (val || '').toString().replace(/"/g, '""') + '"';
+    }).join(';');
+    csv += row + '
+';
+  });
+  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'artfan-' + filt + '-' + new Date().toISOString().split('T')[0] + '.csv';
+  a.click();
+  toast('Export CSV téléchargé', 'ti-file-export');
+}
+
+function openEditFromTableau(id) {
+  const item = DB.find(i => i.id === id);
+  if (!item) return;
+  openEdit(item);
+}
+
+function renderViewSelector() {
+  const schema = COLLECTION_SCHEMAS[filt];
+  if (!schema || filt === 'all') return '';
+  const currentView = VIEW_STATE[filt]?.view || 'cartes';
+  const viewIcons = { cartes: 'ti-layout-grid', tableau: 'ti-table', galerie: 'ti-photo' };
+  return '<div class="view-selector"><span class="vs-label"><i class="ti ' + schema.icon + '"></i> ' + schema.label + '</span><div class="vs-tabs">' + schema.views.map(v => '<button class="vs-tab' + (currentView === v ? ' active' : '') + '" onclick="switchView('' + v + '')"><i class="ti ' + viewIcons[v] + '"></i><span>' + v.charAt(0).toUpperCase() + v.slice(1) + '</span></button>').join('') + '</div></div>';
+}
+
+function switchView(view) {
+  if (!VIEW_STATE[filt]) VIEW_STATE[filt] = {};
+  VIEW_STATE[filt].view = view;
+  saveViewState();
+  renderBib();
+}
+
+const _originalRenderBib = renderBib;
+renderBib = function() {
+  const currentView = VIEW_STATE[filt]?.view || 'cartes';
+  const schema = COLLECTION_SCHEMAS[filt];
+  if (currentView === 'tableau' && schema && filt !== 'all') {
+    const container = document.getElementById('panel-bib');
+    const items = getFiltered();
+    container.innerHTML = '<div class="view-toolbar">' + renderViewSelector() + '</div><div id="tableau-container"></div>';
+    renderTableau(items, document.getElementById('tableau-container'));
+    return;
+  }
+  _originalRenderBib();
+  if (schema && filt !== 'all') {
+    const panel = document.getElementById('panel-bib');
+    if (!panel.querySelector('.view-toolbar')) {
+      const toolbar = document.createElement('div');
+      toolbar.className = 'view-toolbar';
+      toolbar.innerHTML = renderViewSelector();
+      panel.insertBefore(toolbar, panel.firstChild);
+    }
+  }
+};
+
+const _originalGetFiltered = getFiltered;
+getFiltered = function() {
+  let items = _originalGetFiltered();
+  if (customSort && sortMode === 'custom') {
+    const { prop, desc } = customSort;
+    items.sort((a, b) => {
+      const va = getPropValue(enrichItem(a), prop);
+      const vb = getPropValue(enrichItem(b), prop);
+      let cmp = 0;
+      if (typeof va === 'number' && typeof vb === 'number') cmp = va - vb;
+      else cmp = String(va || '').localeCompare(String(vb || ''));
+      return desc ? -cmp : cmp;
+    });
+  }
+  return items;
+};
+
+console.log('Art'fan Collections Typées v3.1 chargé — Schémas:', Object.keys(COLLECTION_SCHEMAS).join(', '));
+
+// ═══════════════════════════════════════════════════════════════
+// FIN COLLECTIONS TYPÉES
+// ═══════════════════════════════════════════════════════════════
 
 typeChange();
 </script>
