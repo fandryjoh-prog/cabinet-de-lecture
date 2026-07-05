@@ -548,6 +548,78 @@ mark{background:var(--accent3);color:var(--accent);border-radius:2px;padding:0 1
 .sel-btn:hover{background:rgba(0,0,0,.25);}
 .sel-btn.danger{background:rgba(180,0,0,.3);}
 
+/* ═══════════════════════════════════════════════════════════════
+   THEME "ARTSY ANALOG" — surcharge des variables + typographie
+   Bibliothèque électronique style Notion premium : organique, éditorial, technique
+   ═══════════════════════════════════════════════════════════════ */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
+.t-perso, .t-pro, .t-eglise, .t-etude, .t-global{
+  --bg:#F5F3EF;--bg2:#EDE8E1;--bg3:#E6D8D2;--bg4:#D2B095;
+  --text:#2E2822;--text2:#5C5248;--text3:#A09689;--text4:#C4BAB0;
+  --accent:#A67C5A;--accent2:#C79770;--accent3:#EDE0D5;
+  --border:#DED3C8;--shadow:0 2px 14px rgba(46,40,34,.06);--shadow2:0 10px 34px rgba(46,40,34,.12);
+}
+.t-pro[data-dark]{
+  --bg:#211D18;--bg2:#2B2620;--bg3:#362F27;--bg4:#453C31;
+  --text:#EDE6DC;--text2:#C4B9AB;--text3:#8D8175;--text4:#5C5248;
+  --accent:#D2B095;--accent2:#E6D8D2;--accent3:#3A2F26;--border:#3A332B;
+}
+body{font-family:'Inter','Jost',sans-serif;letter-spacing:.1px;}
+.garde-title,.hero-greet,.card-title,.esp-name,.focus-title,
+.mhead h3,.sett-section h3,.chart-card h3,#panel-stats>h2,
+#panel-settings h2,.folder-header-name,.dash-bloc-header,
+.doc-name,.stat-card-n,.hs-n,.sb-stat-n{font-family:'Playfair Display',serif;}
+.dl,.doc-meta,.card-author,.sb-stat-l,.hs-l,.tag,.tag-chip,
+.type-badge,.status-pill,.breadcrumb,.sett-sub,.dash-field-lbl,
+#ct-date,#ct-time,.kbd,.dash-kbd{font-family:'Inter',sans-serif;letter-spacing:.3px;}
+.hero{padding:2.5rem 2.75rem;margin-bottom:2.5rem;}
+#panel-stats,#panel-settings,#panel-workspace{padding:2.5rem 3rem;}
+.sett-section,.dash-bloc{padding:1.75rem 2rem;margin-bottom:1.5rem;}
+.charts-row{gap:1.5rem;margin-bottom:1.5rem;}
+.sec-head{margin:2.5rem 0 1.25rem;}
+.sec-head:first-child{margin-top:0;}
+.card{border-radius:6px;border:1px solid var(--border);box-shadow:var(--shadow);transition:box-shadow .25s ease,transform .25s ease;}
+.card:hover{box-shadow:var(--shadow2);transform:translateY(-3px);border-color:var(--accent2);}
+.tag,.tag-chip{border-radius:3px;font-weight:500;font-size:10.5px;}
+#s-garde{background:#211D18;}
+.garde-frame{border-color:rgba(210,176,149,.25);}
+.garde-orn{color:rgba(210,176,149,.25);}
+.garde-pre{color:rgba(210,176,149,.55);font-family:'Inter',sans-serif;}
+.garde-title{color:#EDE0D5;font-family:'Playfair Display',serif;}
+.garde-cursor{background:#D2B095;}
+.garde-divider::before,.garde-divider::after{background:linear-gradient(90deg,transparent,#D2B095,transparent)!important;}
+.garde-divider i{color:#D2B095;}
+.garde-btn{background:rgba(210,176,149,.14);border-color:rgba(210,176,149,.4);color:#EDE0D5;border-radius:4px;}
+.garde-btn:hover{background:rgba(210,176,149,.26);border-color:#D2B095;}
+.garde-year{display:none;}
+.garde-content::before{
+  content:"Une page authentique.";display:block;font-family:'Inter',sans-serif;
+  font-size:11px;letter-spacing:2px;text-transform:uppercase;color:rgba(210,176,149,.45);margin-bottom:4rem;
+}
+.garde-theme-bar span{font-family:'Inter',sans-serif;}
+#dash-settings{background:var(--bg3);}
+.dash-bloc{border-radius:6px;border-color:var(--border);}
+.dash-bloc-header{font-family:'Playfair Display',serif;font-size:13px;letter-spacing:.5px;}
+
+/* ===== UX : responsive mobile ===== */
+@media (max-width:820px){
+  #sidebar-wrapper{position:fixed;inset:0 auto 0 0;z-index:100;}
+  #sidebar{position:fixed;top:0;bottom:0;left:0;box-shadow:var(--shadow2);}
+  #sidebar.collapsed{transform:translateX(-100%);width:250px!important;}
+  #sidebar:not(.collapsed){transform:translateX(0);}
+  #main-area{width:100%;}
+  .hero{flex-wrap:wrap;padding:1.5rem;}
+  .hero-stats{margin-left:0;width:100%;}
+  .charts-row{grid-template-columns:1fr;}
+  #panel-stats,#panel-settings{padding:1.25rem!important;}
+  #dash-settings>div[style*="grid-template-columns:1fr 1fr"]{grid-template-columns:1fr!important;}
+  .esp-grid{grid-template-columns:repeat(2,1fr);}
+}
+/* ===== UX : accessibilité clavier ===== */
+.modal *:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{
+  outline:2px solid var(--accent);outline-offset:1px;
+}
 </style>
   <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
@@ -588,7 +660,7 @@ mark{background:var(--accent3);color:var(--accent);border-radius:2px;padding:0 1
           <div style="font-size:10px;color:rgba(201,168,76,.5);letter-spacing:1px;margin-bottom:5px;font-family:'Cinzel',serif;">MOT DE PASSE</div>
           <div style="position:relative;">
             <input id="auth-pass" type="password" placeholder="••••••••" style="width:100%;background:rgba(201,168,76,.05);border:1px solid rgba(201,168,76,.2);border-radius:7px;padding:10px 40px 10px 14px;font-size:13px;color:#e8dfc0;outline:none;font-family:'Jost',sans-serif;" onfocus="this.style.borderColor='rgba(201,168,76,.6)'" onblur="this.style.borderColor='rgba(201,168,76,.2)'" onkeydown="if(event.key==='Enter')authSubmit()"/>
-            <button onclick="togglePassVis()" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:rgba(201,168,76,.4);font-size:15px;"><i class="ti ti-eye" id="pass-eye"></i></button>
+            <button onclick="togglePassVis()" aria-label="Afficher ou masquer le mot de passe" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:rgba(201,168,76,.4);font-size:15px;"><i class="ti ti-eye" id="pass-eye"></i></button>
           </div>
         </div>
         <div id="auth-err" style="font-size:12px;color:#e05555;min-height:18px;text-align:center;"></div>
@@ -699,7 +771,7 @@ mark{background:var(--accent3);color:var(--accent);border-radius:2px;padding:0 1
       <div class="nav-flat" data-f="a-lire" onclick="navFlat(this)"><i class="ti ti-circle"></i>À lire</div>
       <div class="sec-lbl" style="display:flex;align-items:center;justify-content:space-between;padding-right:10px;">
         Dossiers
-        <button onclick="openNewFolder(null)" style="background:transparent;border:none;cursor:pointer;color:var(--text3);font-size:14px;padding:2px 5px;border-radius:4px;" title="Nouveau dossier"><i class="ti ti-folder-plus"></i></button>
+        <button onclick="openNewFolder(null)" aria-label="Nouveau dossier" style="background:transparent;border:none;cursor:pointer;color:var(--text3);font-size:14px;padding:2px 5px;border-radius:4px;" title="Nouveau dossier"><i class="ti ti-folder-plus"></i></button>
       </div>
       <div id="folder-tree"></div>
       <div class="sec-lbl">Tags</div>
@@ -713,7 +785,7 @@ mark{background:var(--accent3);color:var(--accent);border-radius:2px;padding:0 1
           <div id="sb-user-name" style="font-size:12px;color:var(--text);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Hors ligne</div>
           <div id="sb-user-email" style="font-size:10px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></div>
         </div>
-        <button onclick="signOut()" title="Se déconnecter" style="background:transparent;border:none;cursor:pointer;color:var(--text3);font-size:15px;padding:3px;border-radius:5px;"><i class="ti ti-logout"></i></button>
+        <button onclick="signOut()" title="Se déconnecter" aria-label="Se déconnecter" style="background:transparent;border:none;cursor:pointer;color:var(--text3);font-size:15px;padding:3px;border-radius:5px;"><i class="ti ti-logout"></i></button>
       </div>
       <!-- SYNC BUTTON -->
       <div id="sb-sync-row" style="display:flex;align-items:center;gap:6px;padding:6px 10px;border-radius:8px;cursor:pointer;transition:.12s;border:1px solid var(--border);margin-bottom:4px;" onclick="syncData()" onmouseover="this.style.background='var(--bg2)'" onmouseout="this.style.background=''">
@@ -726,7 +798,7 @@ mark{background:var(--accent3);color:var(--accent);border-radius:2px;padding:0 1
       <div class="theme-mini" id="theme-dots"></div>
     </div>
   </nav>
-  <button id="sb-toggle" onclick="toggleSidebar()" title="Masquer/Afficher le panneau">
+  <button id="sb-toggle" onclick="toggleSidebar()" aria-label="Afficher ou masquer le panneau" title="Masquer/Afficher le panneau">
     <i class="ti ti-chevron-left" id="sb-toggle-icon"></i>
   </button>
 </div>
@@ -738,7 +810,7 @@ mark{background:var(--accent3);color:var(--accent);border-radius:2px;padding:0 1
       <div class="viewer-title" id="viewer-title">Fichier</div>
       <div class="viewer-type" id="viewer-type">—</div>
       <div class="viewer-actions" id="viewer-actions"></div>
-      <button onclick="toggleFullscreen()" title="Plein écran (F)" style="background:transparent;border:1px solid var(--border);border-radius:7px;padding:5px 8px;cursor:pointer;color:var(--text3);font-size:15px;display:flex;align-items:center;transition:.12s;flex-shrink:0;"><i class="ti ti-maximize"></i></button>
+      <button onclick="toggleFullscreen()" aria-label="Plein écran" title="Plein écran (F)" style="background:transparent;border:1px solid var(--border);border-radius:7px;padding:5px 8px;cursor:pointer;color:var(--text3);font-size:15px;display:flex;align-items:center;transition:.12s;flex-shrink:0;"><i class="ti ti-maximize"></i></button>
     </div>
     <div class="viewer-body" id="viewer-body" style="flex:1;overflow:hidden;position:relative;"></div>
   </div>
@@ -753,14 +825,14 @@ mark{background:var(--accent3);color:var(--accent);border-radius:2px;padding:0 1
         <option value="title">A→Z</option><option value="rating">Notes</option>
       </select>
       <div class="vtoggle">
-        <button class="vtbtn on" id="vg" onclick="setView('grid')"><i class="ti ti-layout-grid"></i></button>
-        <button class="vtbtn" id="vl" onclick="setView('list')"><i class="ti ti-list"></i></button>
+        <button class="vtbtn on" id="vg" onclick="setView('grid')" aria-label="Vue grille"><i class="ti ti-layout-grid"></i></button>
+        <button class="vtbtn" id="vl" onclick="setView('list')" aria-label="Vue liste"><i class="ti ti-list"></i></button>
       </div>
       <button onclick="openSearchPalette()" title="Recherche globale (Ctrl+K)" style="background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:6px 12px;font-size:12px;color:var(--text2);cursor:pointer;display:flex;align-items:center;gap:5px;font-family:'Jost',sans-serif;white-space:nowrap;flex-shrink:0;">
         <i class="ti ti-search"></i><span style="font-size:11px">Ctrl+K</span>
       </button>
       <button class="add-btn" onclick="openAdd()"><i class="ti ti-plus"></i>Ajouter</button>
-      <button id="fs-btn" onclick="toggleFullscreen()" title="Plein écran (F11)"><i class="ti ti-maximize" id="fs-icon"></i></button>
+      <button id="fs-btn" onclick="toggleFullscreen()" aria-label="Plein écran" title="Plein écran (F11)"><i class="ti ti-maximize" id="fs-icon"></i></button>
       <div id="clock-wrap">
         <canvas id="analog-clock" width="62" height="62"></canvas>
         <div id="clock-time"><div id="ct-time">00:00</div><div class="ct-h" id="ct-date"></div></div>
@@ -892,7 +964,7 @@ mark{background:var(--accent3);color:var(--accent);border-radius:2px;padding:0 1
 
         <!-- FOOTER -->
         <div style="text-align:center;padding:16px;border-top:1px solid rgba(201,168,76,.1);font-size:10px;color:rgba(201,168,76,.3);letter-spacing:1.5px;font-family:'Cinzel',serif">
-          ART'FAN CABINET DE LECTURE — v3.0
+          ART'FAN CABINET DE LECTURE — v3.1
         </div>
       </div>
     </div>
@@ -908,7 +980,7 @@ mark{background:var(--accent3);color:var(--accent);border-radius:2px;padding:0 1
 <!-- MODAL ADD/EDIT -->
 <div class="overlay" id="ov-add">
 <div class="modal">
-  <div class="mhead"><h3 id="modal-h">Ajouter</h3><button class="icon-btn" onclick="closeOverlay('ov-add')"><i class="ti ti-x"></i></button></div>
+  <div class="mhead"><h3 id="modal-h">Ajouter</h3><button class="icon-btn" onclick="closeOverlay('ov-add')" aria-label="Fermer"><i class="ti ti-x"></i></button></div>
   <div class="mbody">
     <div class="row2">
       <div><label>Type</label><select id="f-type" onchange="typeChange()">
@@ -973,10 +1045,10 @@ mark{background:var(--accent3);color:var(--accent);border-radius:2px;padding:0 1
 <div class="modal dmodal">
   <div class="mhead"><h3 id="d-title" style="font-style:italic">Détail</h3>
     <div class="dbtns">
-      <button class="icon-btn" onclick="openFocusCur()" title="Focus"><i class="ti ti-maximize"></i></button>
-      <button class="icon-btn" onclick="editCur()" title="Modifier"><i class="ti ti-edit"></i></button>
-      <button class="icon-btn danger" onclick="deleteCur()" title="Supprimer"><i class="ti ti-trash"></i></button>
-      <button class="icon-btn" onclick="closeOverlay('ov-detail')"><i class="ti ti-x"></i></button>
+      <button class="icon-btn" onclick="openFocusCur()" title="Focus" aria-label="Focus"><i class="ti ti-maximize"></i></button>
+      <button class="icon-btn" onclick="editCur()" title="Modifier" aria-label="Modifier"><i class="ti ti-edit"></i></button>
+      <button class="icon-btn danger" onclick="deleteCur()" title="Supprimer" aria-label="Supprimer"><i class="ti ti-trash"></i></button>
+      <button class="icon-btn" onclick="closeOverlay('ov-detail')" aria-label="Fermer"><i class="ti ti-x"></i></button>
     </div>
   </div>
   <div class="dbody" id="d-body"></div>
@@ -985,7 +1057,7 @@ mark{background:var(--accent3);color:var(--accent);border-radius:2px;padding:0 1
 <!-- MODAL DOSSIER -->
 <div class="overlay" id="ov-folder">
 <div class="modal folder-modal">
-  <div class="mhead"><h3 id="folder-modal-h">Nouveau dossier</h3><button class="icon-btn" onclick="closeOverlay('ov-folder')"><i class="ti ti-x"></i></button></div>
+  <div class="mhead"><h3 id="folder-modal-h">Nouveau dossier</h3><button class="icon-btn" onclick="closeOverlay('ov-folder')" aria-label="Fermer"><i class="ti ti-x"></i></button></div>
   <div class="mbody">
     <div><label>Nom du dossier</label><input id="folder-name" type="text" placeholder="Ex: Contrats, Prédications…"/></div>
     <div><label>Icône (emoji)</label><input id="folder-icon" type="text" placeholder="📁" style="width:80px"/></div>
@@ -1004,7 +1076,7 @@ mark{background:var(--accent3);color:var(--accent);border-radius:2px;padding:0 1
 <div class="modal" style="width:500px;background:#0e1018;border-color:rgba(201,168,76,.3);">
   <div class="mhead" style="background:#0e1018;border-color:rgba(201,168,76,.2);">
     <h3 style="color:#c9a84c;font-family:'Cinzel',serif;font-size:14px;letter-spacing:1px;">⚡ CONFLIT DE DONNÉES</h3>
-    <button class="icon-btn" onclick="closeOverlay('ov-conflict')" style="color:rgba(201,168,76,.5)"><i class="ti ti-x"></i></button>
+    <button class="icon-btn" onclick="closeOverlay('ov-conflict')" aria-label="Fermer" style="color:rgba(201,168,76,.5)"><i class="ti ti-x"></i></button>
   </div>
   <div style="padding:20px;display:flex;flex-direction:column;gap:16px;">
     <p style="font-size:13px;color:rgba(200,190,160,.7);line-height:1.6;">Des données existent à la fois en local et dans le cloud. Laquelle voulez-vous garder ?</p>
@@ -1041,7 +1113,7 @@ mark{background:var(--accent3);color:var(--accent);border-radius:2px;padding:0 1
   </div>
 </div>
 
-<div id="toast"><i class="ti ti-check"></i><span id="toast-msg">OK</span></div>
+<div id="toast" role="status" aria-live="polite"><i class="ti ti-check"></i><span id="toast-msg">OK</span></div>
 
 <script>
 // ===== CONFIG ESPACES =====
@@ -1068,6 +1140,8 @@ let editId=null,starVal=0,tempQuotes=[];
 let curId=null;
 let pinTarget=null,pinBuffer='',pinMode='check';
 let chartM=null,chartT=null,chartR=null;
+// BUGFIX #2: espaces déverrouillés dans cette session (PIN saisi correctement)
+let unlockedEspaces = new Set();
 
 function initSampleDB(){
   return [
@@ -1112,10 +1186,11 @@ function schedulePush(){
 
 // ===== TOAST =====
 function toast(msg,ic='ti-check'){
-  document.getElementById('toast-msg').textContent=msg;
+  document.getElementById('toast-msg').innerHTML=msg;
   document.querySelector('#toast i').className='ti '+ic;
   const t=document.getElementById('toast');t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'),2500);
+  clearTimeout(window._toastTimer);
+  window._toastTimer=setTimeout(()=>t.classList.remove('show'),5000);
 }
 
 // ===== PARTICLES =====
@@ -1156,6 +1231,7 @@ function openViewer(itemOrId){
 
   // Best source: storageUrl first (always reliable), then fileData/mediaData, then url
   const src = item.storageUrl || item.fileData || item.mediaData || item.url || '';
+  const mediaSrc = src;
   const ext = ((item.fileName||item.title||'').split('.').pop()||'').toLowerCase().replace(/[^a-z0-9]/g,'');
   const mime = item.mimeType || (item.fileData ? item.fileData.split(';')[0].replace('data:','') : '') || '';
 
@@ -1333,76 +1409,7 @@ function openViewer(itemOrId){
             // Replace the Google Fonts link tag with inline style
             textContent = textContent.replace(
               new RegExp(`<link[^>]*href=['"]*${fontUrl.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}[^>]*>`, 'i'),
-              `<style>${cssText}
-
-/* ═══════════════════════════════════════════════════════════════
-   ART'FAN v3.1 — COLLECTIONS TYPÉES (intégré nativement)
-   ═══════════════════════════════════════════════════════════════ */
-
-.view-toolbar{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;background:var(--bg);border-bottom:1px solid var(--border);margin:-18px -18px 18px -18px;gap:12px;flex-wrap:wrap}
-.view-selector{display:flex;align-items:center;gap:16px;flex:1}
-.vs-label{display:flex;align-items:center;gap:8px;font-family:'Cinzel',serif;font-size:14px;color:var(--accent);font-weight:600;letter-spacing:.5px}
-.vs-label i{font-size:18px}
-.vs-tabs{display:flex;gap:4px;background:var(--bg2);padding:3px;border-radius:8px;border:1px solid var(--border)}
-.vs-tab{display:flex;align-items:center;gap:6px;padding:6px 12px;border:none;background:transparent;color:var(--text3);font-family:'Jost',sans-serif;font-size:12px;cursor:pointer;border-radius:6px;transition:all .15s}
-.vs-tab:hover{background:var(--bg3);color:var(--text2)}
-.vs-tab.active{background:var(--bg);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.1)}
-.vs-tab i{font-size:14px}
-.view-tableau-container{display:flex;flex-direction:column;gap:12px}
-.view-tableau-header{display:flex;align-items:center;justify-content:space-between;padding:0 4px}
-.vt-count{font-size:12px;color:var(--text3)}
-.vt-actions{display:flex;gap:8px}
-.vt-btn{display:flex;align-items:center;gap:6px;padding:6px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:7px;color:var(--text2);font-family:'Jost',sans-serif;font-size:12px;cursor:pointer;transition:all .15s}
-.vt-btn:hover{background:var(--accent3);border-color:var(--accent);color:var(--accent)}
-.tableau-wrapper{overflow-x:auto;border:1px solid var(--border);border-radius:10px;background:var(--bg)}
-.tableau{min-width:100%;display:table}
-.tableau-row{display:flex;border-bottom:1px solid var(--border);transition:background .1s}
-.tableau-row:last-child{border-bottom:none}
-.tableau-row.header{background:var(--bg2);position:sticky;top:0;z-index:10;font-weight:500}
-.tableau-row.data-row:hover{background:var(--accent3);cursor:pointer}
-.tableau-cell{padding:10px 12px;font-size:13px;color:var(--text);border-right:1px solid var(--border);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:0;position:relative}
-.tableau-cell:last-child{border-right:none}
-.header-cell{display:flex;align-items:center;justify-content:space-between;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);font-weight:600;padding:8px 12px}
-.th-label{cursor:pointer;display:flex;align-items:center;gap:6px;flex:1}
-.th-label:hover{color:var(--accent)}
-.th-resize{position:absolute;right:0;top:0;bottom:0;width:4px;cursor:col-resize;background:transparent;transition:background .15s}
-.th-resize:hover{background:var(--accent)}
-.actions-cell{display:flex;align-items:center;justify-content:center;gap:4px;padding:6px}
-.tc-action{background:transparent;border:none;color:var(--text3);cursor:pointer;padding:4px;border-radius:4px;font-size:14px;transition:all .15s}
-.tc-action:hover{background:var(--bg3);color:var(--accent)}
-.tc-title{font-weight:500;color:var(--text)}
-.tc-empty{color:var(--text4);font-style:italic}
-.tc-badge{display:inline-block;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:500}
-.tc-rating{color:var(--accent);letter-spacing:-1px;font-size:12px}
-.tc-progress{display:flex;align-items:center;gap:8px}
-.tc-progress-bar{flex:1;height:4px;background:var(--bg3);border-radius:2px;overflow:hidden;min-width:40px}
-.tc-progress-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .3s}
-.tc-progress-text{font-size:11px;color:var(--text3);min-width:40px;text-align:right}
-.tc-check{color:var(--text4);font-size:14px}
-.tc-check.checked{color:#2ecc71}
-.tc-tags{display:flex;flex-wrap:wrap;gap:3px}
-.tc-tag{background:var(--accent3);color:var(--accent);font-size:10px;padding:2px 7px;border-radius:99px;border:1px solid var(--accent);opacity:.8}
-.tc-date{font-size:12px;color:var(--text3)}
-.tc-link{color:var(--accent);text-decoration:none;font-size:12px;display:inline-flex;align-items:center;gap:4px}
-.tc-link:hover{text-decoration:underline}
-.tc-number{font-variant-numeric:tabular-nums;font-size:12px;color:var(--text2)}
-.tc-text{color:var(--text2)}
-.tc-edit-input,.tc-edit-select{width:100%;background:var(--bg);border:1px solid var(--accent);border-radius:6px;padding:6px 8px;font-family:'Jost',sans-serif;font-size:13px;color:var(--text);outline:none}
-.tc-edit-select{cursor:pointer}
-.tc-edit-rating{display:flex;align-items:center;gap:2px}
-.tc-edit-star{font-size:18px;color:var(--bg3);cursor:pointer;transition:color .1s}
-.tc-edit-star.on{color:var(--accent)}
-.tc-edit-clear{margin-left:8px;background:none;border:none;color:var(--text4);cursor:pointer;font-size:14px}
-.tc-edit-clear:hover{color:#e05555}
-.tc-edit-tags{display:flex;flex-wrap:wrap;gap:4px;max-width:200px}
-.tc-edit-tag{background:var(--bg2);border:1px solid var(--border);border-radius:99px;padding:3px 8px;font-size:11px;color:var(--text3);cursor:pointer;transition:all .15s}
-.tc-edit-tag.selected{background:var(--accent3);border-color:var(--accent);color:var(--accent)}
-.tc-edit-tag-input{background:var(--bg);border:1px dashed var(--border);border-radius:99px;padding:3px 8px;font-size:11px;color:var(--text);width:80px;outline:none}
-.tc-edit-tag-input:focus{border-color:var(--accent)}
-.tc-edit-check{width:18px;height:18px;accent-color:var(--accent);cursor:pointer}
-@media(max-width:768px){.view-toolbar{flex-direction:column;align-items:stretch}.vs-tabs{overflow-x:auto}.tableau-wrapper{font-size:12px}.tableau-cell{padding:8px}}
-
-</style>`
+              `<style>${cssText}</style>`
             );
           }catch(e){}
         }
@@ -1455,8 +1462,8 @@ function openViewer(itemOrId){
           <button class="te-btn" onclick="teFormat('italic')"><i>I</i></button>
           <button class="te-btn" onclick="teFormat('underline')"><u>S</u></button>
           <div class="te-sep"></div>
-          <button class="te-btn" onclick="teInsert('\n• ')">• Liste</button>
-          <button class="te-btn" onclick="teInsert('\n# ')"># Titre</button>
+          <button class="te-btn" onclick="teInsert('\\n• ')">• Liste</button>
+          <button class="te-btn" onclick="teInsert('\\n# ')"># Titre</button>
           <div class="te-sep"></div>
           <button class="te-btn" onclick="saveTextEditor()" style="background:var(--accent3);color:var(--accent);border-color:var(--accent)"><i class="ti ti-device-floppy"></i> Sauvegarder</button>
           <div class="te-save-indicator" id="te-save-ind"><i class="ti ti-check" style="color:var(--accent)"></i>Sauvegardé</div>
@@ -1588,7 +1595,6 @@ function saveTextEditor(){
   if(ind) ind.innerHTML = '<i class="ti ti-check" style="color:var(--accent)"></i><span>Sauvegardé</span>';
 }
 
-
 // ===== SIDEBAR TOGGLE =====
 let sidebarOpen = true;
 function toggleSidebar(){
@@ -1710,12 +1716,9 @@ function applyGardeTheme(t){
   const cursor = g.querySelector('.garde-cursor');
   if(cursor)cursor.style.background=th.cursor;
   // divider
-  g.querySelectorAll('.garde-divider::before,.garde-divider::after').forEach(el=>el&&(el.style.background=''));
   const div = g.querySelector('.garde-divider');
   if(div){
-    div.style.setProperty('--div-color',th.dividerLine);
     div.querySelectorAll('i').forEach(i=>i.style.color=th.dividerIcon);
-    // update pseudo-elements via CSS var
     const styleEl = document.getElementById('garde-div-style')||document.createElement('style');
     styleEl.id='garde-div-style';
     styleEl.textContent=`.garde-divider::before,.garde-divider::after{background:linear-gradient(90deg,transparent,${th.dividerLine},transparent)!important;}`;
@@ -1799,6 +1802,10 @@ function selectEspace(esp){
 function enterApp(esp){
   curEspace = esp;
   const ec = ESPACES[esp] || ESPACES.perso;
+
+  // BUGFIX #2: marquer l'espace comme déverrouillé pour cette session
+  // (la recherche globale Ctrl+K ne doit pas exposer un espace jamais visité/déverrouillé)
+  unlockedEspaces.add(esp);
 
   // 1. Apply theme immediately
   document.body.className = ec.theme;
@@ -1903,7 +1910,7 @@ let pinConfirmFirst='';
 function validatePin(){
   if(pinBuffer.length<4){document.getElementById('pin-err').textContent='Entrez 4 chiffres';return;}
   if(pinMode==='check'){
-    if(pinBuffer===PINS[pinTarget]){pinBuffer='';updatePinDots();enterApp(pinTarget);}
+    if(pinBuffer===PINS[pinTarget]){pinBuffer='';updatePinDots();unlockedEspaces.add(pinTarget);enterApp(pinTarget);}
     else{pinBuffer='';updatePinDots();showPinError('PIN incorrect');}
   } else if(pinMode==='set'){
     pinConfirmFirst=pinBuffer;pinBuffer='';pinMode='confirm';updatePinDots();updatePinBox();
@@ -2035,6 +2042,7 @@ function buildFolderTree(){
   const folders=getCurFolders();
   const roots=folders.filter(f=>!f.parent);
   container.innerHTML=roots.map(f=>renderFolderNode(f,folders,0)).join('');
+  enableFolderDropzones();
 }
 function renderFolderNode(folder,allFolders,depth){
   const children=allFolders.filter(f=>f.parent===folder.id);
@@ -2042,7 +2050,7 @@ function renderFolderNode(folder,allFolders,depth){
   const hasChildren=children.length>0;
   const fid=folder.id;
   return`<div class="tree-item" style="padding-left:${depth*8}px;position:relative">
-    <div class="tree-item-inner${fFolder===folder.id?' active':''}" onclick="filterFolder('${fid}')">
+    <div class="tree-item-inner${fFolder===folder.id?' active':''}" data-folder-id="${fid}" onclick="filterFolder('${fid}')">
       ${hasChildren?`<span class="tree-toggle" onclick="toggleFolder(event,'tf-${fid}')"><i class="ti ti-chevron-right"></i></span>`:'<span style="width:16px;flex-shrink:0"></span>'}
       <span style="font-size:15px;flex-shrink:0">${folder.icon||'\u{1F4C1}'}</span>
       <span class="tree-label">${folder.name}</span>
@@ -2053,6 +2061,26 @@ function renderFolderNode(folder,allFolders,depth){
   </div>
   ${hasChildren?`<div class="tree-children" id="tf-${fid}">${children.map(c=>renderFolderNode(c,allFolders,depth+1)).join('')}</div>`:''}`;
 }
+
+// ===== NOUVELLE FONCTIONNALITÉ : glisser-déposer un fichier sur un dossier =====
+function enableFolderDropzones(){
+  document.querySelectorAll('.tree-item-inner[data-folder-id]').forEach(el=>{
+    el.addEventListener('dragover', e=>{
+      if(!e.dataTransfer.types.includes('Files')) return;
+      e.preventDefault(); el.style.background='var(--accent3)';
+    });
+    el.addEventListener('dragleave', ()=>{ el.style.background=''; });
+    el.addEventListener('drop', async e=>{
+      if(!e.dataTransfer.types.includes('Files')) return;
+      e.preventDefault(); el.style.background='';
+      const fid = el.dataset.folderId;
+      if(!fid) return;
+      const files = Array.from(e.dataTransfer.files);
+      for(const file of files) await uploadFileLocal(file, fid);
+    });
+  });
+}
+
 function showFolderMenu(fid,e){
   e.stopPropagation();
   document.querySelectorAll('.folder-add-menu').forEach(m=>m.style.cssText='display:none');
@@ -2153,11 +2181,31 @@ function updateSidebar(){
   });
   const allTags=[...new Set(data.flatMap(i=>i.tags))].sort();
   const tc=document.getElementById('tag-cloud');
-  tc.innerHTML=allTags.map(t=>`<span class="tag-chip${ftag===t?' on':''}" onclick="filterTag('${t}')">${t}</span>`).join('');
+  tc.innerHTML=allTags.map(t=>`<span class="tag-chip${ftag===t?' on':''}" style="${tagStyle(t)}" onclick="filterTag('${t}')" oncontextmenu="openTagColorPicker('${t}',event);return false" title="Clic droit : changer la couleur">${t}</span>`).join('');
   updateSettingsPins();
   document.getElementById('sett-name').value=SETTINGS.name||'';
 }
 function filterTag(t){ftag=ftag===t?null:t;showPanel('bib');renderBib();}
+
+// ===== NOUVELLE FONCTIONNALITÉ : tags avec couleur personnalisable =====
+if(!SETTINGS.tagColors) SETTINGS.tagColors = {};
+function getTagColor(tag){ return SETTINGS.tagColors[tag] || null; }
+function setTagColor(tag, color){ SETTINGS.tagColors[tag] = color; save(); updateSidebar(); renderBib(); }
+function tagStyle(tag){
+  const c = getTagColor(tag);
+  return c ? `background:${c}22;color:${c};border-color:${c}` : '';
+}
+function openTagColorPicker(tag, ev){
+  ev.stopPropagation();
+  const cur = getTagColor(tag) || '#A67C5A';
+  const input = document.createElement('input');
+  input.type='color'; input.value=cur;
+  input.style.cssText='position:fixed;opacity:0;pointer-events:none;left:'+(ev.clientX)+'px;top:'+(ev.clientY)+'px';
+  document.body.appendChild(input);
+  input.click();
+  input.onchange = ()=>{ setTagColor(tag, input.value); input.remove(); };
+  input.onblur = ()=>{ setTimeout(()=>input.remove(),300); };
+}
 
 // ===== FILTER =====
 function getFiltered(){
@@ -2221,7 +2269,7 @@ function cardH(item){
       ${globalBadge}
       ${item.author?`<span style="font-size:11px;color:var(--text3);font-style:italic;flex-shrink:0">${item.author}</span>`:''}
       <span class="status-pill ${S_CLS[item.status]}">${S_LBL[item.status]}</span>
-      <div class="tags" style="flex-wrap:nowrap">${item.tags.slice(0,2).map(t=>`<span class="tag">${t}</span>`).join('')}</div>
+      <div class="tags" style="flex-wrap:nowrap">${item.tags.slice(0,2).map(t=>`<span class="tag" style="${tagStyle(t)}">${t}</span>`).join('')}</div>
     </div>`;
   }
   const coverEl=item.coverUrl?`<img class="card-cover" src="${item.coverUrl}" alt="" onerror="this.style.display='none'">`:(item.type==='livre'?`<div class="cover-ph"><i class="ti ti-book-2"></i></div>`:'');
@@ -2236,7 +2284,30 @@ function cardH(item){
     ${item.author?`<div class="card-author">${item.author}</div>`:''}
     ${item.pageTotal>0?`<div><div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-bottom:2px"><span>${item.pageCur}/${item.pageTotal}</span><span>${prog}%</span></div><div class="prog-bar"><div class="prog-fill" style="width:${prog}%"></div></div></div>`:''}
     ${starsH(item.rating)}
-    <div class="tags">${item.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>
+    <div class="tags">${item.tags.map(t=>`<span class="tag" style="${tagStyle(t)}">${t}</span>`).join('')}</div>
+  </div>`;
+}
+
+// ===== NOUVELLE FONCTIONNALITÉ : vue Galerie (livres & médias) =====
+function renderGalerie(items, container){
+  const withCover = items.filter(i=> i.coverUrl || i.type==='media');
+  if(!withCover.length){
+    container.innerHTML = `<div class="empty"><i class="ti ti-photo"></i><p>Aucune couverture disponible pour la vue galerie</p></div>`;
+    return;
+  }
+  container.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:18px">
+    ${withCover.map(item=>{
+      const cover = item.coverUrl || '';
+      return `<div class="card" style="padding:0;overflow:hidden;cursor:pointer" onclick="openDetail(${item.id})">
+        ${cover
+          ? `<img src="${cover}" style="width:100%;aspect-ratio:2/3;object-fit:cover;display:block" onerror="this.style.display='none'">`
+          : `<div style="width:100%;aspect-ratio:2/3;display:flex;align-items:center;justify-content:center;background:var(--bg2)"><i class="ti ${TYPE_ICONS[item.type]||'ti-file'}" style="font-size:32px;color:var(--text3)"></i></div>`}
+        <div style="padding:10px">
+          <div class="card-title" style="font-size:12px;line-height:1.3">${item.title}</div>
+          ${item.author?`<div style="font-size:10px;color:var(--text3);margin-top:2px">${item.author}</div>`:''}
+        </div>
+      </div>`;
+    }).join('')}
   </div>`;
 }
 
@@ -2359,14 +2430,47 @@ function openDetail(id){
     if(item.docType==='url')h+=`<div><div class="dl">Lien</div><a href="${item.url}" target="_blank" style="color:var(--accent);word-break:break-all">${item.url}</a></div>`;
     else if(item.fileData||item.mediaData)h+=`<div><div class="dl">Fichier</div><span style="font-size:12px;color:var(--text3)">${item.fileName||item.title} ${item.fileSize?'('+formatSize(item.fileSize)+')':''}</span></div>`;
   }
-  if(item.tags.length)h+=`<div><div class="dl">Tags</div><div class="tags">${item.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div></div>`;
+  if(item.tags.length)h+=`<div><div class="dl">Tags</div><div class="tags">${item.tags.map(t=>`<span class="tag" style="${tagStyle(t)}">${t}</span>`).join('')}</div></div>`;
   if(item.notes)h+=`<div><div class="dl">Notes</div><div class="dnotes">${item.notes}</div></div>`;
   if(item.quotes&&item.quotes.length)h+=`<div><div class="dl">Citations</div>${item.quotes.map(q=>`<div class="quote-block">${q}<div class="quote-src">— ${item.title}</div></div>`).join('')}</div>`;
   h+=`<div><div class="dl">Date</div><div style="font-size:11px;color:var(--text3)">${item.date}</div></div>`;
   document.getElementById('d-body').innerHTML=h;
   openOverlay('ov-detail');
 }
-function deleteCur(){if(confirm('Supprimer ?')){DB=DB.filter(i=>i.id!==curId);save();updateSidebar();renderBib();buildFolderTree();closeOverlay('ov-detail');toast('Supprimé','ti-trash');}}
+
+// ===== NOUVELLE FONCTIONNALITÉ : suppression avec Annuler (Undo, 5s) =====
+let undoTimer = null;
+window._lastDeleted = null;
+function softDelete(id, overlayToClose){
+  const item = DB.find(i=>i.id===id);
+  if(!item) return;
+  const idx = DB.indexOf(item);
+  DB.splice(idx,1);
+  save(); updateSidebar(); renderBib(); buildFolderTree();
+  if(overlayToClose) closeOverlay(overlayToClose);
+  showUndoToast(item, idx);
+}
+function showUndoToast(item, idx){
+  clearTimeout(undoTimer);
+  const t = document.getElementById('toast');
+  document.getElementById('toast-msg').innerHTML =
+    `"${(item.title||item.fileName||'Élément').toString().substring(0,30)}" supprimé
+     <button onclick="undoDelete(${item.id})" style="margin-left:10px;background:rgba(255,255,255,.2);border:none;color:inherit;padding:3px 10px;border-radius:6px;cursor:pointer;font-size:12px">Annuler</button>`;
+  document.querySelector('#toast i').className = 'ti ti-trash';
+  t.classList.add('show');
+  window._lastDeleted = {item, idx};
+  undoTimer = setTimeout(()=>{ t.classList.remove('show'); window._lastDeleted=null; }, 5000);
+}
+function undoDelete(id){
+  if(!window._lastDeleted || window._lastDeleted.item.id!==id) return;
+  const {item, idx} = window._lastDeleted;
+  DB.splice(Math.min(idx,DB.length), 0, item);
+  save(); updateSidebar(); renderBib(); buildFolderTree();
+  document.getElementById('toast').classList.remove('show');
+  window._lastDeleted = null;
+  toast('Restauré','ti-rotate');
+}
+function deleteCur(){ softDelete(curId, 'ov-detail'); }
 function editCur(){closeOverlay('ov-detail');const item=DB.find(i=>i.id===curId);if(item)openEdit(item);}
 function openFocusCur(){closeOverlay('ov-detail');const item=DB.find(i=>i.id===curId);if(item)openFocus(item);}
 function openFocus(item){
@@ -2477,7 +2581,6 @@ async function callAI(prompt){
 async function aiUrl(){
   const url=document.getElementById('f-url').value.trim();
   if(!url){toast('Entrez une URL','ti-alert-circle');return;}
-  const btn=document.getElementById('btn-ai-url');
   showAI(loaderH('Analyse…'));
   try{
     const res=await callAI(`Analyse ce lien : "${url}"\nRéponds UNIQUEMENT en JSON sans backticks :\n{"title":"...","summary":"...","tags":["t1","t2","t3"]}`);
@@ -2542,8 +2645,8 @@ function renderStats(){
   const rd={1:0,2:0,3:0,4:0,5:0};data.filter(i=>i.rating>0).forEach(i=>rd[i.rating]++);
   const tagC={};data.flatMap(i=>i.tags).forEach(t=>tagC[t]=(tagC[t]||0)+1);
   const topTags=Object.entries(tagC).sort((a,b)=>b[1]-a[1]).slice(0,8);
-  const accent=getComputedStyle(document.documentElement).getPropertyValue('--accent').trim()||'#c9a84c';
-  const txt=getComputedStyle(document.documentElement).getPropertyValue('--text2').trim()||'#5c4a2a';
+  const accent=getComputedStyle(document.documentElement).getPropertyValue('--accent').trim()||'#A67C5A';
+  const txt=getComputedStyle(document.documentElement).getPropertyValue('--text2').trim()||'#5C5248';
   const opts={responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1,color:txt},grid:{color:'rgba(128,128,128,.08)'}},x:{ticks:{color:txt},grid:{display:false}}}};
   if(chartM)chartM.destroy();chartM=new Chart(document.getElementById('chart-monthly'),{type:'bar',data:{labels:months,datasets:[{data:mc,backgroundColor:accent+'70',borderColor:accent,borderWidth:1,borderRadius:4}]},options:opts});
   if(chartT)chartT.destroy();chartT=new Chart(document.getElementById('chart-types'),{type:'doughnut',data:{labels:['Livres','Articles','Notes','Médias'],datasets:[{data:Object.values(td),backgroundColor:[accent+'80','#8b3a1a80','#4a674180','#2c5a8b80'],borderColor:[accent,'#8b3a1a','#4a6741','#2c5a8b'],borderWidth:2}]},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{color:txt,padding:10,font:{size:11}}}}}});
@@ -2558,8 +2661,9 @@ function renderStats(){
 }
 
 // ===== DATA MGMT =====
+// BUGFIX #3 : l'export inclut désormais les PIN, l'import demande confirmation avant de les écraser
 function exportJSON(){
-  const blob=new Blob([JSON.stringify({db:DB,folders:FOLDERS,settings:SETTINGS},null,2)],{type:'application/json'});
+  const blob=new Blob([JSON.stringify({db:DB,folders:FOLDERS,settings:SETTINGS,pins:PINS},null,2)],{type:'application/json'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='cabinet-lecture.json';a.click();toast('Exporté !');
 }
 function importJSON(e){
@@ -2568,7 +2672,12 @@ function importJSON(e){
   reader.onload=ev=>{
     try{
       const d=JSON.parse(ev.target.result);
-      if(d.db){DB=d.db;FOLDERS=d.folders||FOLDERS;SETTINGS=d.settings||SETTINGS;save();updateSidebar();renderBib();buildFolderTree();toast('Importé !');}
+      if(!d.db){alert('Fichier invalide.');return;}
+      if(d.pins && Object.keys(d.pins).length && !confirm('Ce fichier contient des codes PIN. Les remplacer par ceux-ci ?')){
+        d.pins = PINS; // garde les PIN actuels si refus
+      }
+      DB=d.db;FOLDERS=d.folders||FOLDERS;SETTINGS=d.settings||SETTINGS;PINS=d.pins||PINS;
+      save();updateSidebar();renderBib();buildFolderTree();updateSettingsPins();toast('Importé !');
     }catch(err){alert('Fichier invalide.');}
   };
   reader.readAsText(file);
@@ -2601,9 +2710,6 @@ document.addEventListener('keydown',e=>{
   else if(e.key==='Backspace')pinKey('del');
   else if(e.key==='Enter')pinKey('ok');
 });
-
-// ===== ESPACE ETUDE =====
-// Added to ESPACES config via JS patch below
 
 // ===== HORLOGE ANALOGIQUE =====
 function drawClock(){
@@ -2749,7 +2855,6 @@ function clockLoop(){requestAnimationFrame(clockLoop);drawClock();}
 clockLoop();
 
 // ===== DOCUMENTS DANS DOSSIERS =====
-// Extend DB items to support doc type
 // doc item: {id, espace, type:'doc', title, docType:'pdf'|'url'|'html'|'file', url:'', fileData:'', fileName:'', fileSize:0, folder, tags, notes, date}
 
 function getDocIcon(docType, fileName){
@@ -2797,8 +2902,8 @@ function renderFolderView(folderId){
       <button class="sel-btn" onclick="clearSelection('${folderId}')"><i class="ti ti-x"></i>Annuler</button>
     </div>` : '';
 
-  // Upload bar
-  const upBar = `<div class="folder-upload-bar">
+  // Upload bar — glisser-déposer aussi supporté directement sur cette zone
+  const upBar = `<div class="folder-upload-bar" id="folder-dropzone-${folderId}">
     <label class="fub-btn" style="cursor:pointer;background:var(--accent);color:var(--bg);border-color:var(--accent)" title="Max 900KB par fichier pour sync cloud">
       <i class="ti ti-upload"></i>Uploader <span style="font-size:10px;opacity:.7">(max 900KB/sync)</span>
       <input type="file" style="display:none" accept="*/*" multiple onchange="handleFolderUpload('${folderId}',this)"/>
@@ -2809,6 +2914,7 @@ function renderFolderView(folderId){
     <button class="fub-btn" onclick="openNewFolder('${folderId}')"><i class="ti ti-folder-plus"></i>Sous-dossier</button>
     <button class="fub-btn" onclick="editFolder('${folderId}')"><i class="ti ti-edit"></i>Renommer</button>
     <button class="fub-btn" onclick="deleteFolder('${folderId}')" style="color:#c0392b"><i class="ti ti-trash"></i></button>
+    <span style="font-size:11px;color:var(--text3);margin-left:auto;align-self:center"><i class="ti ti-drag-drop"></i> Glissez un fichier ici</span>
   </div>`;
 
   // Sub-folders
@@ -2869,9 +2975,22 @@ function renderFolderView(folderId){
       </div>
     </div>` +
     upBar + selToolbar + subHTML + docsHTML + othersHTML +
-    (isEmpty?`<div class="empty"><i class="ti ti-folder-open"></i><p>Dossier vide</p><p style="font-size:12px;color:var(--text3);margin-top:6px">Cliquez sur <b>Uploader</b> pour ajouter des fichiers</p></div>`:'');
+    (isEmpty?`<div class="empty"><i class="ti ti-folder-open"></i><p>Dossier vide</p><p style="font-size:12px;color:var(--text3);margin-top:6px">Cliquez sur <b>Uploader</b> ou glissez un fichier ici</p></div>`:'');
 
   bib.querySelectorAll('.card').forEach(c=>c.onclick=()=>openDetail(+c.dataset.id));
+
+  // Glisser-déposer directement dans la zone de contenu du dossier
+  const dz = document.getElementById('folder-dropzone-'+folderId);
+  if(dz){
+    bib.addEventListener('dragover', e=>{ if(e.dataTransfer.types.includes('Files')){ e.preventDefault(); dz.style.borderColor='var(--accent)'; } });
+    bib.addEventListener('dragleave', ()=>{ dz.style.borderColor=''; });
+    bib.addEventListener('drop', async e=>{
+      if(!e.dataTransfer.types.includes('Files')) return;
+      e.preventDefault(); dz.style.borderColor='';
+      const files = Array.from(e.dataTransfer.files);
+      for(const file of files) await uploadFileLocal(file, folderId);
+    });
+  }
 }
 
 // ===== SELECTION FUNCTIONS =====
@@ -2908,8 +3027,6 @@ async function deleteSelectedDocs(){
   const ids = [...selectedDocs];
   if(!ids.length) return;
   if(!confirm(`Supprimer ${ids.length} fichier${ids.length>1?'s':''} ?`)) return;
-  // Delete from Storage if cloud files
-  // Just remove from DB (no Firebase Storage to clean up)
   DB = DB.filter(i=>!ids.includes(i.id));
   selectedDocs.clear();
   selectionMode = false;
@@ -2921,8 +3038,6 @@ async function deleteSelectedDocs(){
 function moveSelectedDocs(){
   const ids = [...selectedDocs];
   if(!ids.length) return;
-  // Build folder list for selection
-  const folderOptions = FOLDERS.map(f=>`${f.icon} ${f.name} (${f.id})`).join('\n');
   const choice = prompt(`Déplacer vers quel dossier ?\nEntrez l'ID du dossier :\n\n${FOLDERS.map(f=>`${f.icon} ${f.name} → ID: ${f.id}`).join('\n')}`);
   if(!choice) return;
   const targetFolder = FOLDERS.find(f=>f.id===choice.trim());
@@ -2952,7 +3067,7 @@ async function handleFolderUpload(folderId, input){
 }
 
 async function uploadFileLocal(file, folderId){
-  const progId = 'up-'+Date.now();
+  const progId = 'up-'+Date.now()+'-'+Math.round(Math.random()*1000);
   showUploadProgress(progId, file.name, 0);
   try{
     const fileData = await new Promise((res,rej)=>{
@@ -3009,7 +3124,6 @@ function folder_espace_of(folderId){
   return f ? f.espace||'perso' : 'perso';
 }
 
-
 function formatSize(bytes){
   if(!bytes)return'';
   if(bytes<1024)return bytes+'B';
@@ -3017,24 +3131,18 @@ function formatSize(bytes){
   return(bytes/(1024*1024)).toFixed(1)+'MB';
 }
 
+// BUGFIX #1 : uploadFileToStorage n'existait pas (Firebase Storage non configuré).
+// Tout passe désormais par uploadFileLocal() (base64), avec le même plafond que
+// l'upload multi-fichiers, au lieu de planter silencieusement pour les gros fichiers.
 async function uploadDocToFolder(folderId, input){
-  const file = input.files[0]; if(!file) return;
-  const MAX = 10*1024*1024;
-  if(file.size > MAX){toast('Fichier trop volumineux (max 10MB)','ti-alert-circle');return;}
-  toast('Chargement…','ti-loader');
-  const fileData = await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(file);});
-  const item = {
-    id:Date.now(), espace:curEspace==='global'?'perso':curEspace,
-    type:'doc', docType:'file', title:file.name,
-    fileName:file.name, fileSize:file.size, fileData,
-    url:'', folder:folderId, tags:[], notes:'', rating:0,
-    status:'lu', author:'', mediaType:'', mediaData:'', coverUrl:'',
-    pageCur:0, pageTotal:0, collection:'', quotes:[],
-    date:new Date().toISOString().split('T')[0]
-  };
-  DB.push(item); save(); updateSidebar(); renderFolderView(folderId); buildFolderTree();
-  toast('Fichier ajouté !');
-  input.value='';
+  const file = input.files ? input.files[0] : input;
+  if(!file) return;
+  if(file.size > MAX_FILE_SIZE){
+    const proceed = confirm(`"${file.name}" fait ${formatSize(file.size)} — dépasse la limite sync cloud (900KB).\nStocké localement uniquement. Continuer ?`);
+    if(!proceed) return;
+  }
+  await uploadFileLocal(file, folderId);
+  if(input.value !== undefined) input.value='';
 }
 
 function addLinkToFolder(folderId){
@@ -3078,10 +3186,9 @@ function addHtmlToFolder(folderId){
 async function deleteDoc(id){
   if(!confirm('Supprimer ce document ?')) return;
   const item = DB.find(i=>i.id===id);
-  DB = DB.filter(i=>i.id!==id);
-  save(); updateSidebar();
-  if(item&&item.folder) renderFolderView(item.folder);
-  buildFolderTree(); toast('Supprimé','ti-trash');
+  const folderId = item && item.folder;
+  softDelete(id, null);
+  if(folderId) renderFolderView(folderId);
 }
 
 function deleteFolder(id){
@@ -3498,7 +3605,6 @@ async function pushToCloud() {
   updateSyncStatus('syncing');
   try {
     SETTINGS.lastSync = Date.now();
-    // Strip large base64 file data before sync (too large for Firestore 1MB doc limit)
     // Strip files > 900KB from cloud sync (Firestore 1MB doc limit)
     const dbToSync = DB.map(item => {
       const copy = {...item};
@@ -3551,7 +3657,7 @@ function applyCloudData(cloudData) {
   SETTINGS = {...SETTINGS, ...(cloudData.settings||{})};
   PINS = cloudData.pins || PINS;
   save();
-  render();
+  renderBib();
   buildFolderTree();
   updateSidebar();
   const now = new Date();
@@ -3599,14 +3705,10 @@ document.addEventListener('visibilitychange', () => {
 });
 
 // ===== INIT — Show auth screen first =====
-// Override the normal init to show auth first
 window.addEventListener('load', () => {
-  // Show auth screen on top of garde
   showScreen('s-auth');
   switchAuthTab('login');
 });
-
-
 
 // ===== SEARCH PALETTE =====
 let spSelectedIdx = -1;
@@ -3627,10 +3729,16 @@ document.getElementById('search-palette').onclick = e=>{
   if(e.target===document.getElementById('search-palette')) closeSearchPalette();
 };
 
+// BUGFIX #2 : la recherche globale ne doit plus exposer le contenu d'un espace
+// protégé par un PIN si celui-ci n'a pas été déverrouillé dans cette session.
 function spSearch(q){
   q = q.toLowerCase().trim();
   const res = document.getElementById('sp-results');
-  const allItems = DB; // search across all espaces
+  const allItems = DB.filter(i=>{
+    const esp = i.espace || 'perso';
+    if(!PINS[esp]) return true; // pas de PIN sur cet espace : visible
+    return unlockedEspaces.has(esp); // sinon, uniquement si déjà déverrouillé cette session
+  });
   spResults = q ? allItems.filter(i=>
     i.title.toLowerCase().includes(q)||
     (i.author||'').toLowerCase().includes(q)||
@@ -3728,9 +3836,7 @@ function switchToEspace(espId){
   selectEspace(espId);
 }
 
-// ===== FIREBASE STORAGE UPLOAD =====
-// Firebase Storage removed — using Firestore base64
-
+// ===== UPLOAD PROGRESS UI =====
 function showUploadProgress(id, name, pct){
   let wrap = document.getElementById('up-progress-wrap');
   if(!wrap){
@@ -3754,21 +3860,6 @@ function updateUploadProgress(id, pct){
 function hideUploadProgress(id){
   const el = document.getElementById(id); if(el) el.remove();
 }
-
-// Patch uploadDocToFolder to use Storage when logged in
-const _origUploadDocToFolder = uploadDocToFolder;
-async function uploadDocToFolder(folderId, input){
-  const file = input.files ? input.files[0] : input;
-  if(!file) return;
-  if(currentUser && file.size > 5*1024*1024){
-    // Use Firebase Storage for large files
-    await uploadFileToStorage(file, folderId);
-    return;
-  }
-  // Small files or offline: use base64
-  await _origUploadDocToFolder(folderId, input);
-}
-
 
 // ===== FETCH AND SHOW HTML FROM STORAGE =====
 async function fetchAndShowHtml(url, title){
@@ -3816,14 +3907,12 @@ async function fetchAndShowHtml(url, title){
   }
 }
 
-
 // ===== HTML CONTENT FIXER — polices, encodage, CORS =====
 function prepareHtmlForDisplay(rawText, baseUrl){
   let text = rawText;
 
   // 1. Detect and fix charset
   const charsetMatch = text.match(/<meta[^>]*charset=['"\s]*([\w-]+)/i);
-  const charset = charsetMatch ? charsetMatch[1].toLowerCase().replace(/-/g,'') : 'utf8';
 
   // 2. Remove any CSP meta tags that block external resources
   text = text.replace(/<meta[^>]*http-equiv=['"\s]*content-security-policy[^>]*>/gi, '');
@@ -3854,13 +3943,6 @@ function prepareHtmlForDisplay(rawText, baseUrl){
 
   return text;
 }
-
-
-// openViewer handles storageUrl natively
-
-
-
-
 
 // ═══════════════════════════════════════════════════════════════
 // ART'FAN v3.1 — COLLECTIONS TYPÉES (intégré nativement)
@@ -3999,16 +4081,16 @@ function renderTableau(items, container) {
   html += '<div class="tableau-row header">';
   visibleProps.forEach(p => {
     html += '<div class="tableau-cell header-cell" style="width:' + (state.columnWidths?.[p.id] || p.width || 150) + 'px" data-prop="' + p.id + '">';
-    html += '<span class="th-label" onclick="sortTableau('' + p.id + '')">' + p.label;
+    html += '<span class="th-label" onclick="sortTableau(\'' + p.id + '\')">' + p.label;
     if (state.sortBy === p.id) html += ' <i class="ti ti-chevron-' + (state.sortDesc ? 'down' : 'up') + '"></i>';
-    html += '</span><div class="th-resize" onmousedown="startResizeCol(event, '' + p.id + '')"></div></div>';
+    html += '</span><div class="th-resize" onmousedown="startResizeCol(event, \'' + p.id + '\')"></div></div>';
   });
   html += '<div class="tableau-cell header-cell actions-cell" style="width:80px">Actions</div></div>';
   html += '<div class="tableau-body">';
   enrichedItems.forEach(item => {
     html += '<div class="tableau-row data-row" data-id="' + item.id + '" onclick="openDetail(' + item.id + ')">';
     visibleProps.forEach(p => {
-      html += '<div class="tableau-cell" style="width:' + (state.columnWidths?.[p.id] || p.width || 150) + 'px" data-prop="' + p.id + '" onclick="event.stopPropagation(); editTableauCell(' + item.id + ', '' + p.id + '', this)">';
+      html += '<div class="tableau-cell" style="width:' + (state.columnWidths?.[p.id] || p.width || 150) + 'px" data-prop="' + p.id + '" onclick="event.stopPropagation(); editTableauCell(' + item.id + ', \'' + p.id + '\', this)">';
       html += renderTableauCell(item, p) + '</div>';
     });
     html += '<div class="tableau-cell actions-cell" style="width:80px" onclick="event.stopPropagation()">';
@@ -4051,7 +4133,7 @@ function editTableauCell(itemId, propId, cell) {
     case 'number': case 'progress': inputHtml = '<input type="number" class="tc-edit-input" value="' + currentValue + '" min="0" onblur="saveTableauCell()" onkeydown="tableauKeydown(event)">'; break;
     case 'checkbox': inputHtml = '<input type="checkbox" class="tc-edit-check"' + (currentValue ? ' checked' : '') + ' onchange="saveTableauCell()">'; break;
     case 'date': inputHtml = '<input type="date" class="tc-edit-input" value="' + currentValue + '" onblur="saveTableauCell()" onkeydown="tableauKeydown(event)">'; break;
-    case 'multi_select': { const allTags = [...new Set(DB.flatMap(i => i.tags || []))]; inputHtml = '<div class="tc-edit-tags">' + allTags.map(t => '<span class="tc-edit-tag' + ((currentValue || []).includes(t) ? ' selected' : '') + '" onclick="this.classList.toggle('selected')">' + t + '</span>').join('') + '<input type="text" class="tc-edit-tag-input" placeholder="+ nouveau" onkeydown="if(event.key==='Enter'){const s=document.createElement('span');s.className='tc-edit-tag selected';s.textContent=this.value;this.parentElement.insertBefore(s,this);this.value='';event.preventDefault()}" onblur="saveTableauCell()"></div>'; break; }
+    case 'multi_select': { const allTags = [...new Set(DB.flatMap(i => i.tags || []))]; inputHtml = '<div class="tc-edit-tags">' + allTags.map(t => '<span class="tc-edit-tag' + ((currentValue || []).includes(t) ? ' selected' : '') + '" onclick="this.classList.toggle(\'selected\')">' + t + '</span>').join('') + '<input type="text" class="tc-edit-tag-input" placeholder="+ nouveau" onkeydown="if(event.key===\'Enter\'){const s=document.createElement(\'span\');s.className=\'tc-edit-tag selected\';s.textContent=this.value;this.parentElement.insertBefore(s,this);this.value=\'\';event.preventDefault()}" onblur="saveTableauCell()"></div>'; break; }
     default: inputHtml = '<input type="text" class="tc-edit-input" value="' + (currentValue || '').toString().replace(/"/g, '&quot;') + '" placeholder="' + (propDef.placeholder || '') + '" onblur="saveTableauCell()" onkeydown="tableauKeydown(event)">';
   }
   cell.innerHTML = inputHtml;
@@ -4146,8 +4228,7 @@ function exportTableauCSV() {
   const items = getFiltered();
   const schema = COLLECTION_SCHEMAS[filt] || COLLECTION_SCHEMAS.livre;
   const visibleProps = schema.properties.filter(p => !p.hidden);
-  let csv = visibleProps.map(p => '"' + p.label + '"').join(';') + '
-';
+  let csv = visibleProps.map(p => '"' + p.label + '"').join(';') + '\n';
   items.forEach(item => {
     const enriched = enrichItem(item);
     const row = visibleProps.map(p => {
@@ -4155,10 +4236,9 @@ function exportTableauCSV() {
       if (Array.isArray(val)) val = val.join(', ');
       return '"' + (val || '').toString().replace(/"/g, '""') + '"';
     }).join(';');
-    csv += row + '
-';
+    csv += row + '\n';
   });
-  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+  const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = 'artfan-' + filt + '-' + new Date().toISOString().split('T')[0] + '.csv';
@@ -4172,12 +4252,13 @@ function openEditFromTableau(id) {
   openEdit(item);
 }
 
+// NOUVELLE FONCTIONNALITÉ : sélecteur de vue étendu avec Galerie
 function renderViewSelector() {
   const schema = COLLECTION_SCHEMAS[filt];
   if (!schema || filt === 'all') return '';
   const currentView = VIEW_STATE[filt]?.view || 'cartes';
   const viewIcons = { cartes: 'ti-layout-grid', tableau: 'ti-table', galerie: 'ti-photo' };
-  return '<div class="view-selector"><span class="vs-label"><i class="ti ' + schema.icon + '"></i> ' + schema.label + '</span><div class="vs-tabs">' + schema.views.map(v => '<button class="vs-tab' + (currentView === v ? ' active' : '') + '" onclick="switchView('' + v + '')"><i class="ti ' + viewIcons[v] + '"></i><span>' + v.charAt(0).toUpperCase() + v.slice(1) + '</span></button>').join('') + '</div></div>';
+  return '<div class="view-selector"><span class="vs-label"><i class="ti ' + schema.icon + '"></i> ' + schema.label + '</span><div class="vs-tabs">' + schema.views.map(v => '<button class="vs-tab' + (currentView === v ? ' active' : '') + '" onclick="switchView(\'' + v + '\')"><i class="ti ' + viewIcons[v] + '"></i><span>' + v.charAt(0).toUpperCase() + v.slice(1) + '</span></button>').join('') + '</div></div>';
 }
 
 function switchView(view) {
@@ -4196,6 +4277,14 @@ renderBib = function() {
     const items = getFiltered();
     container.innerHTML = '<div class="view-toolbar">' + renderViewSelector() + '</div><div id="tableau-container"></div>';
     renderTableau(items, document.getElementById('tableau-container'));
+    return;
+  }
+  // NOUVELLE FONCTIONNALITÉ : vue Galerie branchée ici
+  if (currentView === 'galerie' && schema && schema.views.includes('galerie') && filt !== 'all') {
+    const container = document.getElementById('panel-bib');
+    const items = getFiltered();
+    container.innerHTML = '<div class="view-toolbar">' + renderViewSelector() + '</div><div id="galerie-container"></div>';
+    renderGalerie(items, document.getElementById('galerie-container'));
     return;
   }
   _originalRenderBib();
@@ -4227,7 +4316,7 @@ getFiltered = function() {
   return items;
 };
 
-console.log('Art'fan Collections Typées v3.1 chargé — Schémas:', Object.keys(COLLECTION_SCHEMAS).join(', '));
+console.log("Art'fan v3.2 chargé — Thème Artsy Analog, schémas :", Object.keys(COLLECTION_SCHEMAS).join(', '));
 
 // ═══════════════════════════════════════════════════════════════
 // FIN COLLECTIONS TYPÉES
