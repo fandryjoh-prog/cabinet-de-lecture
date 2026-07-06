@@ -3304,34 +3304,52 @@ const firebaseConfig = {
   measurementId: "G-GRDR36QXQ9"
 };
 
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.firestore();
-
+// DURCISSEMENT : si Firebase ne charge pas (bloqueur de pub, réseau, projet supprimé…),
+// tout le code JS placé APRÈS ce bloc dans le script continuait sinon d'échouer en cascade
+// (recherche globale, vue tableau/galerie, workspace, et le typeChange() final).
+// On isole donc tout Firebase pour que l'app reste utilisable en mode local/hors-ligne.
 let currentUser = null;
 let conflictCloudData = null;
 let authMode = 'login';
+let firestoreUnsubscribe = null;
+let auth = null;
+let db = null;
+let firebaseAvailable = false;
+
+try{
+  if(typeof firebase === 'undefined') throw new Error('SDK Firebase non chargé (bloqué ou hors-ligne)');
+  firebase.initializeApp(firebaseConfig);
+  auth = firebase.auth();
+  db = firebase.firestore();
+  firebaseAvailable = true;
+}catch(e){
+  console.warn('Firebase indisponible — mode local uniquement.', e.message);
+  firebaseAvailable = false;
+}
 
 // ===== AUTH STATE LISTENER =====
-let firestoreUnsubscribe = null;
-
-auth.onAuthStateChanged(user => {
-  currentUser = user;
-  if(user) {
-    updateUserUI(user);
-    // Load cloud data immediately
-    autoLoadOnLogin();
-    // Subscribe to real-time updates from Firestore
-    subscribeToCloud();
-  } else {
-    updateUserUI(null);
-    // Unsubscribe from real-time updates
-    if(firestoreUnsubscribe) { firestoreUnsubscribe(); firestoreUnsubscribe = null; }
-  }
-});
+if(firebaseAvailable){
+  auth.onAuthStateChanged(user => {
+    currentUser = user;
+    if(user) {
+      updateUserUI(user);
+      // Load cloud data immediately
+      autoLoadOnLogin();
+      // Subscribe to real-time updates from Firestore
+      subscribeToCloud();
+    } else {
+      updateUserUI(null);
+      // Unsubscribe from real-time updates
+      if(firestoreUnsubscribe) { firestoreUnsubscribe(); firestoreUnsubscribe = null; }
+    }
+  });
+} else {
+  // Pas de Firebase : on force juste l'UI en mode "hors ligne", le reste de l'app continue.
+  setTimeout(()=>updateUserUI(null), 0);
+}
 
 function subscribeToCloud(){
-  if(!currentUser) return;
+  if(!firebaseAvailable || !currentUser) return;
   if(firestoreUnsubscribe) firestoreUnsubscribe(); // unsubscribe previous
   firestoreUnsubscribe = db.collection('users').doc(currentUser.uid)
     .onSnapshot(doc => {
@@ -3432,6 +3450,7 @@ async function authSubmit() {
   const pass = document.getElementById('auth-pass').value;
   const errEl = document.getElementById('auth-err');
   const btn = document.getElementById('auth-submit-btn');
+  if(!firebaseAvailable){ errEl.textContent = 'Connexion impossible (service indisponible). Utilisez "Continuer sans compte".'; return; }
   if(!email || !pass) { errEl.textContent = 'Remplissez tous les champs.'; return; }
   btn.textContent = '...';
   btn.disabled = true;
@@ -3467,6 +3486,7 @@ async function authSubmit() {
 async function resetPassword() {
   const email = document.getElementById('auth-email').value.trim();
   const errEl = document.getElementById('auth-err');
+  if(!firebaseAvailable){ errEl.textContent = 'Service indisponible.'; return; }
   if(!email) { errEl.textContent = "Entrez votre email d'abord."; return; }
   try {
     await auth.sendPasswordResetEmail(email);
@@ -3483,6 +3503,7 @@ function authContinueOffline() {
 }
 
 async function signOut() {
+  if(!firebaseAvailable){ toast('Déjà hors ligne', 'ti-cloud-off'); return; }
   if(!confirm('Se déconnecter ?')) return;
   await auth.signOut();
   toast('Déconnecté', 'ti-logout');
@@ -3518,12 +3539,12 @@ if(!document.getElementById('spin-style')) {
 
 // ===== FIRESTORE SYNC =====
 function getCloudPath() {
-  if(!currentUser) return null;
+  if(!firebaseAvailable || !currentUser) return null;
   return db.collection('users').doc(currentUser.uid);
 }
 
 async function autoLoadOnLogin() {
-  if(!currentUser) return;
+  if(!firebaseAvailable || !currentUser) return;
   updateSyncStatus('syncing');
   try {
     const doc = await getCloudPath().get();
@@ -3573,6 +3594,7 @@ async function autoLoadOnLogin() {
 }
 
 async function syncData() {
+  if(!firebaseAvailable){ toast('Synchronisation indisponible (service hors-ligne)', 'ti-cloud-off'); return; }
   if(!currentUser) {
     toast('Connectez-vous pour synchroniser', 'ti-user');
     showScreen('s-auth');
@@ -3601,7 +3623,7 @@ async function syncData() {
 }
 
 async function pushToCloud() {
-  if(!currentUser) return;
+  if(!firebaseAvailable || !currentUser) return;
   updateSyncStatus('syncing');
   try {
     SETTINGS.lastSync = Date.now();
