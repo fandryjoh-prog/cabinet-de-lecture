@@ -669,45 +669,9 @@ body{font-family:'DM Sans',sans-serif;letter-spacing:normal;line-height:1.6;}
 <body class="t-perso">
 
 <!-- ===== GESTE SIGNATURE : ÉCRAN DE BOOT TERMINAL ===== -->
-<div id="s-boot" aria-hidden="true">
+<div id="s-boot" role="status" aria-live="polite" aria-label="Chargement de l'application">
   <div id="boot-lines"></div>
 </div>
-<script>
-// Séquence de boot purement décorative — additive, n'interagit avec aucune
-// fonction ni variable de l'application (aucune logique existante touchée).
-(function(){
-  var lines = [
-    "ml'am::boot",
-    "→ mounting workspace kernel............. [OK]",
-    "→ loading modules ux·sync·auth·render... [OK]",
-    "→ indexing library....................... [OK]",
-    "→ ready."
-  ];
-  var container = document.getElementById('boot-lines');
-  var boot = document.getElementById('s-boot');
-  if(!container || !boot) return;
-  var i = 0;
-  function nextLine(){
-    if(i < lines.length){
-      var row = document.createElement('div');
-      row.textContent = lines[i];
-      if(lines[i].indexOf('[OK]') !== -1 || lines[i].indexOf('ready') !== -1) row.className = 'boot-ok';
-      container.appendChild(row);
-      i++;
-      setTimeout(nextLine, i===1 ? 300 : 190);
-    } else {
-      var cursor = document.createElement('span');
-      cursor.id = 'boot-cursor';
-      container.appendChild(cursor);
-      setTimeout(function(){
-        boot.classList.add('boot-hidden');
-        setTimeout(function(){ if(boot.parentNode) boot.parentNode.removeChild(boot); }, 600);
-      }, 450);
-    }
-  }
-  setTimeout(nextLine, 200);
-})();
-</script>
 
 <!-- ===== AUTH SCREEN ===== -->
 <div class="screen off" id="s-auth" style="background:#12161D;flex-direction:column;gap:0;">
@@ -4047,7 +4011,7 @@ function prepareHtmlForDisplay(rawText, baseUrl){
 }
 
 // ═══════════════════════════════════════════════════════════════
-// ART'FAN v3.1 — COLLECTIONS TYPÉES (intégré nativement)
+// ML'AM v1.0 — COLLECTIONS TYPÉES (intégré nativement)
 // ═══════════════════════════════════════════════════════════════
 
 const COLLECTION_SCHEMAS = {
@@ -4425,6 +4389,51 @@ console.log("Ml'am v1.0 chargé — Identité Nordique/Technique, schémas :", O
 // ═══════════════════════════════════════════════════════════════
 
 typeChange();
+</script>
+
+<!-- ===== GESTE SIGNATURE : séquence de boot terminal, autonome, n'appelle ni ne modifie aucune fonction existante ===== -->
+<script>
+(function(){
+  var lines = [
+    { t: "$ ml'am --init", cls: '' },
+    { t: '> résolution des dépendances… ', cls: 'boot-dim', ok: 'OK' },
+    { t: '> chargement des espaces [perso] [pro] [église] [étude]… ', cls: 'boot-dim', ok: 'OK' },
+    { t: '> synchronisation locale… ', cls: 'boot-dim', ok: 'OK' },
+    { t: '> assemblage de l\'interface… ', cls: 'boot-dim', ok: 'READY' },
+  ];
+  var container = document.getElementById('boot-lines');
+  var boot = document.getElementById('s-boot');
+  if(!container || !boot) return;
+
+  var i = 0;
+  function nextLine(){
+    if(i >= lines.length){
+      var cursor = document.createElement('span');
+      cursor.id = 'boot-cursor';
+      container.appendChild(cursor);
+      setTimeout(function(){
+        boot.classList.add('boot-hidden');
+        setTimeout(function(){ if(boot && boot.parentNode) boot.parentNode.removeChild(boot); }, 550);
+      }, 380);
+      return;
+    }
+    var row = document.createElement('div');
+    var span = document.createElement('span');
+    span.className = lines[i].cls;
+    span.textContent = lines[i].t;
+    row.appendChild(span);
+    if(lines[i].ok){
+      var ok = document.createElement('span');
+      ok.className = 'boot-ok';
+      ok.textContent = lines[i].ok;
+      row.appendChild(ok);
+    }
+    container.appendChild(row);
+    i++;
+    setTimeout(nextLine, 220);
+  }
+  setTimeout(nextLine, 150);
+})();
 </script>
 </body>
 </html>
