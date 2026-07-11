@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Ml'am — Bibliothèque Technique</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link href="https://fonts.googleapis.com/css2?family=Lexend+Zetta:wght@600;700&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Lexend+Zetta:wght@600;700&family=DM+Sans:wght@400;500&family=Caveat:wght@600;700&display=swap" rel="stylesheet"/>
 <link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.10.0/tabler-icons.min.css" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
@@ -89,8 +89,10 @@ body{background:var(--bg,#fdf8ee);color:var(--text,#2c1f0e);}
 .garde-orn.bl{bottom:32px;left:32px;transform:scaleY(-1);}.garde-orn.br{bottom:32px;right:32px;transform:scale(-1);}
 .garde-content{position:relative;z-index:2;text-align:center;max-width:560px;padding:40px 32px;}
 .garde-pre{font-family:'Lexend Zetta',sans-serif;font-size:10px;letter-spacing:4px;color:rgba(136,192,208,.6);margin-bottom:32px;opacity:0;animation:fu .8s .4s forwards;}
-.garde-title{font-family:'Lexend Zetta',sans-serif;font-size:clamp(42px,7vw,72px);color:#E5E9F0;line-height:1.2;margin-bottom:32px;min-height:1.3em;}
+.garde-title{font-family:'Caveat',cursive;font-weight:700;font-size:clamp(56px,10vw,96px);color:#E5E9F0;line-height:1.15;margin-bottom:32px;min-height:1.2em;}
 .garde-cursor{display:inline-block;width:2px;height:.85em;background:#88C0D0;vertical-align:middle;margin-left:4px;animation:blink .8s step-end infinite;}
+.garde-letter{display:inline-block;opacity:0;transform:translateY(6px) rotate(-4deg);animation:handwriteIn .32s cubic-bezier(.25,.8,.4,1) forwards;}
+@keyframes handwriteIn{to{opacity:1;transform:translateY(0) rotate(0deg);}}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
 .garde-divider{display:flex;align-items:center;gap:14px;margin-bottom:36px;opacity:0;animation:fu .8s 1.2s forwards;}
 .garde-divider::before,.garde-divider::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,transparent,#88C0D0,transparent);}
@@ -553,7 +555,7 @@ mark{background:var(--accent3);color:var(--accent);border-radius:2px;padding:0 1
    Palette froide dosée, typographie à contraste fort (display condensé
    impact vs corps lisible), densité d'information façon outil pro.
    ═══════════════════════════════════════════════════════════════ */
-@import url('https://fonts.googleapis.com/css2?family=Lexend+Zetta:wght@600;700&family=DM+Sans:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Lexend+Zetta:wght@600;700&family=DM+Sans:wght@400;500&family=Caveat:wght@600;700&display=swap');
 
 .t-perso, .t-pro, .t-eglise, .t-etude, .t-global{
   --bg:#ECEFF4;--bg2:#E5E9F0;--bg3:#DCE1EA;--bg4:#C7D0DE;
@@ -599,7 +601,7 @@ body{font-family:'DM Sans',sans-serif;letter-spacing:normal;line-height:1.6;}
 .garde-frame{border-color:rgba(136,192,208,.2);}
 .garde-orn{color:rgba(136,192,208,.2);}
 .garde-pre{color:rgba(136,192,208,.55);font-family:'DM Sans',sans-serif;font-weight:500;letter-spacing:.15em;}
-.garde-title{color:#E5E9F0;font-family:'Lexend Zetta',sans-serif;font-weight:700;letter-spacing:-.01em;}
+.garde-title{color:#E5E9F0;font-family:'Caveat',cursive;font-weight:700;letter-spacing:0;}
 .garde-cursor{background:#88C0D0;}
 .garde-divider::before,.garde-divider::after{background:linear-gradient(90deg,transparent,#88C0D0,transparent)!important;}
 .garde-divider i{color:#88C0D0;}
@@ -1804,7 +1806,16 @@ setTimeout(()=>{
 const TITLE='Bibliothèque Technique';
 let typed2=0;
 function typeNext(){
-  if(typed2<=TITLE.length){document.getElementById('typed').textContent=TITLE.slice(0,typed2++);setTimeout(typeNext,typed2<4?100:55);}
+  if(typed2<TITLE.length){
+    const ch=TITLE[typed2];
+    const span=document.createElement('span');
+    span.className='garde-letter';
+    span.textContent=ch;
+    span.style.animationDelay=(typed2%2===0?'0s':'.02s');
+    document.getElementById('typed').appendChild(span);
+    typed2++;
+    setTimeout(typeNext,typed2<4?110:65);
+  }
   else setTimeout(()=>document.getElementById('gcursor').style.display='none',900);
 }
 setTimeout(typeNext,600);
