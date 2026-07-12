@@ -739,7 +739,7 @@ body{font-family:'DM Sans',sans-serif;letter-spacing:normal;line-height:1.6;}
   <div class="garde-year" id="garde-year"></div>
   <div class="garde-theme-bar">
     <span>Thème</span>
-    <div class="gth-dot on" data-gt="dark" style="background:linear-gradient(135deg,#2a1f0e,#88C0D0)" title="Parchemin (défaut)" onclick="setGardeTheme('dark',this)"></div>
+    <div class="gth-dot on" data-gt="dark" style="background:linear-gradient(135deg,#12161D,#88C0D0)" title="Nordique (défaut)" onclick="setGardeTheme('dark',this)"></div>
     <div class="gth-dot" data-gt="midnight" style="background:linear-gradient(135deg,#0a0a1a,#4a6fa5)" title="Minuit" onclick="setGardeTheme('midnight',this)"></div>
     <div class="gth-dot" data-gt="emerald" style="background:linear-gradient(135deg,#0a1f0a,#2d6a2d)" title="Émeraude" onclick="setGardeTheme('emerald',this)"></div>
     <div class="gth-dot" data-gt="crimson" style="background:linear-gradient(135deg,#1f0a0a,#8b1a1a)" title="Cramoisi" onclick="setGardeTheme('crimson',this)"></div>
@@ -972,7 +972,7 @@ body{font-family:'DM Sans',sans-serif;letter-spacing:normal;line-height:1.6;}
             <div class="dash-field-lbl" style="margin-bottom:10px">Thème de l'espace actif</div>
             <div style="display:flex;gap:8px;flex-wrap:wrap" id="dash-theme-dots"></div>
             <div style="margin-top:14px">
-              <div class="dash-field-lbl">Page de garde</div>
+              <div class="dash-field-lbl">Thème (page de garde + app)</div>
               <div style="display:flex;gap:7px;margin-top:8px;flex-wrap:wrap" id="dash-garde-dots"></div>
             </div>
           </div>
@@ -1741,6 +1741,55 @@ const GARDE_THEMES = {
     cursor:'#88C0D0'
   },
 };
+
+// ===== THÈMES APPLIQUÉS À L'APP ENTIÈRE (sidebar, cartes, boutons, panneaux) =====
+// Chaque thème de la page de garde pilote aussi la palette interne de l'app,
+// pas seulement l'écran de garde/connexion.
+const APP_THEMES = {
+  dark:{
+    bg:'#ECEFF4',bg2:'#E5E9F0',bg3:'#DCE1EA',bg4:'#C7D0DE',
+    text:'#3B4A5A',text2:'#5C7089',text3:'#81A1C1',text4:'#AEC3D6',
+    accent:'#88C0D0',accent2:'#6aa2b2',accent3:'#D7EAF0',
+    border:'#e6e9ee',shadow:'0 1px 3px rgba(59,74,90,.06)',shadow2:'0 8px 24px rgba(59,74,90,.10)'
+  },
+  midnight:{
+    bg:'#0F1420',bg2:'#161C2C',bg3:'#1F2738',bg4:'#2A3448',
+    text:'#DCE3F0',text2:'#A6B3CC',text3:'#7A93BE',text4:'#3E4A66',
+    accent:'#5580C4',accent2:'#4a6fa5',accent3:'rgba(74,111,165,.18)',
+    border:'#2A3448',shadow:'0 1px 3px rgba(0,0,0,.35)',shadow2:'0 8px 24px rgba(0,0,0,.5)'
+  },
+  emerald:{
+    bg:'#0C1712',bg2:'#132019',bg3:'#1B2C22',bg4:'#25392C',
+    text:'#DCEFE1',text2:'#A8CBB3',text3:'#6FAE82',text4:'#375A42',
+    accent:'#3FAE5E',accent2:'#2d8a2d',accent3:'rgba(45,138,45,.18)',
+    border:'#25392C',shadow:'0 1px 3px rgba(0,0,0,.35)',shadow2:'0 8px 24px rgba(0,0,0,.5)'
+  },
+  crimson:{
+    bg:'#180E0E',bg2:'#211414',bg3:'#2C1B1B',bg4:'#3A2424',
+    text:'#F2DEDC',text2:'#D0A6A2',text3:'#B4726B',text4:'#5C3230',
+    accent:'#D6543F',accent2:'#c0392b',accent3:'rgba(192,57,43,.18)',
+    border:'#3A2424',shadow:'0 1px 3px rgba(0,0,0,.35)',shadow2:'0 8px 24px rgba(0,0,0,.5)'
+  },
+  amethyst:{
+    bg:'#160F22',bg2:'#1E1530',bg3:'#281C3E',bg4:'#33254E',
+    text:'#E9DFF5',text2:'#BCA6D9',text3:'#9670C4',text4:'#4A3468',
+    accent:'#9257EF',accent2:'#7c3aed',accent3:'rgba(124,58,237,.18)',
+    border:'#33254E',shadow:'0 1px 3px rgba(0,0,0,.35)',shadow2:'0 8px 24px rgba(0,0,0,.5)'
+  },
+  ivory:{
+    bg:'#F8F4E8',bg2:'#F0E9D8',bg3:'#E4D8BE',bg4:'#D0BE96',
+    text:'#3D2B1F',text2:'#5C4530',text3:'#8A6E4E',text4:'#B79E78',
+    accent:'#88C0D0',accent2:'#6aa2b2',accent3:'#DCEFF3',
+    border:'#E4D8BE',shadow:'0 1px 3px rgba(59,74,90,.08)',shadow2:'0 8px 24px rgba(59,74,90,.14)'
+  }
+};
+
+function applyAppTheme(t){
+  const p = APP_THEMES[t] || APP_THEMES.dark;
+  const b = document.body.style;
+  Object.keys(p).forEach(k=>b.setProperty('--'+k, p[k]));
+}
+
 let curGardeTheme = SETTINGS.gardeTheme||'dark';
 
 function applyGardeTheme(t){
@@ -1792,16 +1841,18 @@ function setGardeTheme(t, el){
   document.querySelectorAll('.gth-dot').forEach(d=>d.classList.remove('on'));
   if(el)el.classList.add('on');
   applyGardeTheme(t);
+  applyAppTheme(t);
 }
 
 document.getElementById('garde-year').textContent='— '+new Date().getFullYear()+' —';
-// Apply saved garde theme
+// Apply saved garde theme (écran de garde + palette interne de l'app)
 setTimeout(()=>{
   const saved = SETTINGS.gardeTheme||'dark';
   const dot = document.querySelector(`.gth-dot[data-gt="${saved}"]`);
   document.querySelectorAll('.gth-dot').forEach(d=>d.classList.remove('on'));
   if(dot)dot.classList.add('on');
   applyGardeTheme(saved);
+  applyAppTheme(saved);
 },50);
 const TITLE='Bibliothèque Technique';
 let typed2=0;
@@ -2064,7 +2115,7 @@ function buildDashThemeDots(){
   const gd=document.getElementById('dash-garde-dots');
   if(gd){
     const gardeThemes=[
-      {t:'dark',label:'Parchemin',bg:'linear-gradient(135deg,#2a1f0e,#88C0D0)'},
+      {t:'dark',label:'Nordique (défaut)',bg:'linear-gradient(135deg,#12161D,#88C0D0)'},
       {t:'midnight',label:'Minuit',bg:'linear-gradient(135deg,#0a0a1a,#4a6fa5)'},
       {t:'emerald',label:'Émeraude',bg:'linear-gradient(135deg,#0a1f0a,#2d6a2d)'},
       {t:'crimson',label:'Cramoisi',bg:'linear-gradient(135deg,#1f0a0a,#8b1a1a)'},
